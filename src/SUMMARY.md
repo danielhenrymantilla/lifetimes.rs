@@ -16,7 +16,7 @@
 
 - [Lifetime elision rules](lifetime-elision-rules.md)
 
-- [Covariance: when lifetimes shrink](variance.md)
+- [Variance](variance-intro.md)
 
     - [Some eggsamples of variance](eggs.md)
 
