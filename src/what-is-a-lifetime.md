@@ -31,7 +31,7 @@
 
 For the rest of this first section, I will thus be using:
   - "lifetime", to talk of what Rust denotes with `'tick`;
-  - life-time, to talk about when some value / instance is alive (and pay thus special interest to it dying / being moved).
+  - life-time, to talk about when some value / instance is alive (paying special attention to it dying / being moved).
 
 #### <span style="text-decoration: line-through;">life</span>times
 
@@ -41,7 +41,7 @@ So, what Rust calls "lifetimes" for historical reasons, is a quite inaccurate te
 
 ##### Bonus point of view: "lifetimes" as end dates (and thus, "expiry dates")
 
-Interestingly enough, we can notice that the start point of these "time intervals" (_e.g._, the `1` in `1..2` or the `2` in `2..5`) is not really important: "lifetimes", ultimately, are used to know when some value ceases to be usable / when it may involve dangling pointers, since when a value is born, it is always valid / it doesn't dangle yet.
+Interestingly enough, we can notice that the start point of these "time intervals" (_e.g._, the `1` in `1..2` or the `2` in `2..5`) is not really important: "lifetimes", ultimately, are used to know when some value ceases to be usable / when it may involve dangling pointers (when a value is born, it is always valid / it doesn't dangle yet).
 
 That is, when Rust looks at these lifetimes, it will mostly be thinking about `..2` _vs._ `..5` _vs._ _specific usage points_ (_e.g._, "what happens at line `3`").
 
