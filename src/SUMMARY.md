@@ -33,9 +33,7 @@ ___
 
 ___
 
-# Appendix
-
-- [Shorter definitions](definitions.md)
+- [Appendix](appendix.md)
 
     - [Elided lifetimes / what is `'_`](elided-lifetimes.md)
 
