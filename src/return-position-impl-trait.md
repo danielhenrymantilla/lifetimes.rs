@@ -180,7 +180,7 @@ help: `'a` and `'b` must be the same: replace one with the other
 
 Indeed, `+ 'usability` means that it has to be usable (at least) within the whole `'usability` region!
 
-So if you write `+ 'a + 'b` it means that it will be usable within `'a` _and_[^and] that it is usable within `'b` as well. That is, (an instance of (type)) `impl 'a + 'b` has to be usable within the _union_ of the regions `'a` and `'b`.
+So if you write `+ 'a + 'b` it means that it will be usable within `'a` _and_[^and] that it will be usable within `'b` as well. That is, (an instance of (type)) `impl 'a + 'b` has to be usable within the _union_ of the regions `'a` and `'b`.
 
 [^and]: that's exactly what `+` means in Rust: `+` adds capabilities, rather than restraining them, so there is no way `+ 'a + 'b` yields, _to the caller_, something more restrictive than just `+ 'a`.
 

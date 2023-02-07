@@ -20,6 +20,8 @@
 
     - [Some eggsamples of variance](eggs.md)
 
+    - [Covariance: when lifetimes can shrink](covariance.md)
+
 - [Lifetime semantics of `-> impl Trait`](return-position-impl-trait.md)
 
 - [Intersection lifetime](intersection-lifetime.md)
@@ -38,6 +40,8 @@ ___
     - [Elided lifetimes / what is `'_`](elided-lifetimes.md)
 
     - [`Trait + 'lifetime`](usability.md)
+
+    - [Subtyping _vs._ Coercions](subtyping-vs-coercions.md)
 ___
 
 [Closing thoughts]()

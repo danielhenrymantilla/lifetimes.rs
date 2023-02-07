@@ -1,6 +1,6 @@
 # Some eggsamples of variance
 
-In this case, let's go with eggs (🥚): say there is a typical half-a-dozen of them in your fridge, with an expiry date of, say, next week. You go and eat one of them, using some eggcelent recipe, but which is not the point here (although you can probably guess what it _boils_ down to).
+Say there is a typical half-a-dozen 🥚s in your fridge, with an expiry date of, say, next week. You go and eat one of them, using some eggcelent recipe, but which is not the point here (although you can probably guess what it _boils_ down to).
 
 The point is, there are now only 5 🥚s left, and since there may be guests coming over to taste that delicious _omelette du fromage_ you are infamous for, you do need there to be 6 in the fridge in case these guests have the indecency of actually showing up to the invitation.
 
@@ -14,7 +14,7 @@ The one that wouldn't be fine would be if you decided to do it the other way aro
 
 But there are cases where you can't reduce spans of edibility just because you fancy it.
 
-Consider a variant (we have ostrich 🥚s laying around for some reason, we may as well use them!): imagine that the old one-week-expiry-labelled basket is empty, and that have just acquired 5 fresh 1-month-edible 🥚s. The old, 1-week-expiring-labelled basket has gotten stuck in the frige, so you decide to use it for your new eggs, _with the intention of eating them within the month anyways_. You don't mind, because you _know_ your 🥚s will be edible for a month.
+Consider a variant (we have ostrich 🥚s laying around for some reason, we may as well use them!): imagine that the old one-week-expiry-labelled basket is empty, and that you have just acquired 5 fresh 1-month-edible 🥚s. The old, 1-week-expiring-labelled basket has gotten stuck in the frige, so you decide to use it for your new eggs, _with the intention of eating them within the month anyways_. You don't mind, because you _know_ your 🥚s will be edible for a month.
 
 That doesn't sound too bad, right? So you leave the kitchen proud of your big brain play (which is true, relatively speaking, since ostriches have quite tiny brains: they're actually smaller than their eyes!).
 
@@ -38,41 +38,85 @@ In Rust the mechanism to "change the way we view something" in a way that auto-r
  1. When you recover things out of the `Fridge` / when that initial borrow ends, the `Basket<'long>` collection of `Egg<'long>`s actually has an `Egg<'short>` impostor among them 🤮
 
 ```rs
+#![deny(unsafe_code)]
+
+use dbg as eat;
+
 type Basket<'expiry> = Vec<Egg<'expiry>>;
 type Egg<'expiry> = &'expiry str;
 
-fn example() {
-    let short_lived_egg = String::from("🥚");
-    let reginald = |basket: &mut _| {
-        basket.push(&short_lived_egg);
-    };
-
-    // you
-    let basket_back = with_fridge(reginald);
-    let last_egg = basket_back.pop().unwrap();
-    drop(short_lived_egg); // `last_egg` now passed its expiry date.
-    eat(last_egg); // Uh-oh
+#[allow(unsafe_code)] // The only unsafe operation happens here
+fn shrink_lifetime<'r, 'short, 'long : 'short> (
+    basket_in_fridge: &'r mut Basket<'long>,
+) -> &'r mut Basket<'short>
+{
+    // Assuming the following to be sound:
+    unsafe {
+        ::core::mem::transmute(basket_in_fridge)
+    }
 }
 
-fn with_fridge<'short>(
+/// Notice, here, how the only `unsafe` operation has been that of
+fn open_fridge<'short>(
     fridge_user: impl FnOnce(&mut Basket<'short>),
 ) -> Basket<'static>
 {
-    let mut basket: Basket<'static> = vec!["example"];
-    let exposed_basket: &mut Basket<'static> = &mut basket;
-    // Let's assume the following were sound:
-    let exposed_basket: &mut Basket<'short> = unsafe {
-        &mut *exposed_basket
-    };
-    fridge_user(exposed_basket);
+    // Our long-living eggs.
+    let mut basket: Basket<'static> = vec!["long-living 🥚"];
+
+    // The basket we should have put in the fridge:
+    let basket_in_fridge: &mut Basket<'static> = &mut basket;
+
+    // But we end up using, instead, the already present shortly-expiring
+    // basket, with our new eggs.
+    let basket_in_fridge: &mut Basket<'short> =
+        shrink_lifetime(basket_in_fridge)
+    ;
+
+    // We go out of the kitchen for a few days
+    fridge_user(basket_in_fridge);
+
+    // We get back "our" long-living eggs.
     basket
 }
 
-fn eat<'not_expired_yet>(egg: Egg<'not_expired_yet>) {
-   dbg!(egg);
+fn food_poisoning() {
+    // The short-lived egg Regginald went and came back with.
+    let short_lived_egg = String::from("short-living 🥚");
+
+    let basket = 'regginald: {
+        // It can soundly be put back in the basket since it is a
+        // shortly-expiring basket!
+        open_fridge(|basket: &mut _| {
+            // Look ma, no unsafe!
+            basket.push(&short_lived_egg);
+        })
+    };
+
+    // Say that two weeks pass by, so that the `short_lived_egg` has expired:
+    drop(short_lived_egg);
+
+    // And now we go back to the basket with "our" eggs and eat them.
+    for egg in basket {
+        eat!(egg); // Uh-oh
+    }
 }
 ```
 
-So the rule of thumb of this whole aneggdote is that:
-  - Usually, we can shrink/reduce expiry-dates willy-nilly and it will Be Fine™;
-  - But there are also many cases involving a mutable-potentially-not-last
+___
+
+#### Conclusion
+
+I'd eggspect, or at least hope, this eggcelent aneggdote to have given you the following key _intuitions_:
+
+ 1. Don't say about an expired egg that it hasn't expired yet:
+
+    > **Increasing/enlarging expiry-dates ❌ is almost always Not Right™**
+
+ 1. But you can always say that a good egg is about to expire even when it is not:
+
+    > **Usually, we can shrink/shorten expiry-dates 👍 willy-nilly and it will Be Fine™**
+
+ 1. But beware of mutable borrows! Since borrows are temporary, whenever they end, the borrowee can be reüsed again with its original lifetime. So any lifetime shrinkage happening within the borrow will, in a way, be _reverted_ the moment the borrow ends. And reverting a lifetime shrinkage boils down to having enlarged a lifetime ⇒ `1.` ⇒ Bad™.
+
+    > **Shrinking expiry-dates behind temporary mutable access —such as mutable borrows ⚠️— is Easily Problematic™**
