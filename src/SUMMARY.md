@@ -22,6 +22,10 @@
 
     - [Covariance: when lifetimes can shrink](covariance.md)
 
+    - [Contravariance: when lifetimes can grow](contravariance.md)
+
+    - [Variance rules: a recap](variance-rules.md)
+
 - [Lifetime semantics of `-> impl Trait`](return-position-impl-trait.md)
 
 - [Intersection lifetime](intersection-lifetime.md)
