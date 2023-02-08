@@ -146,7 +146,7 @@ And now the million dogecoin question is to know which lifetime we put here:
   - `dyn 'b + Future…` ?
       - _vice versa_: ❌
   - `dyn 'a + 'b + Future…` ?
-      - Papering over the fact Rust doesn't let us write `dyn 'a + 'b + …` for some reason, this would not be right, since this is expresses a `'usability` that includes `'a` _and_  `'b`, and we've seen that each of this is already problematic, so a bigger usability is _a fortiori_ problematic.
+      - Papering over the fact Rust doesn't let us write `dyn 'a + 'b + …` for some reason, this would not be right, since this is expresses a `'usability` that includes `'a` _and_  `'b`, and we've seen that each of this is already problematic, so a bigger usability is even more problematic.
 
 I've talked about all this in more detail over the [section about `-> impl Trait`](./return-position-impl-trait.md), which also happens to mention the answer.
 
