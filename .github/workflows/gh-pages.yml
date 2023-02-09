@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  URL_ROOT_PATH: /safer_ffi/
+
+jobs:
+  # Deploy to Github pages #
+  deploy:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: default
+          override: true
+          toolchain: 1.60.0
+
+      - name: Install `mdbook`
+        uses: peaceiris/actions-mdbook@v1
+        with:
+          mdbook-version: '0.4.4'
+
+      - name: Clone repo
+        uses: actions/checkout@v2
+
+      - name: Build guide and documentation
+        run: |
+          mdbook build
+          mkdir -p book/assets
+          cp -r assets/* book/assets/
+
+      - name: Deploy to Github Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./book
