@@ -30,6 +30,8 @@
 
 - [Intersection lifetime](intersection-lifetime.md)
 
+- [`async fn` unsugaring / lifetime](async-fn.md)
+
 ___
 
 

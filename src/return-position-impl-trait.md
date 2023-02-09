@@ -59,6 +59,46 @@ These `-> impl Sized + InfectedBy<T>` semantics are what allow the returned inst
 
 But notice how, despite the `'lt` generic "lifetime" parameter in scope, there is no `+ InfectedBy<'lt>` in the unsugaring I've shown!
 
+  - <details><summary>Example</summary>
+
+    The following works fine:
+
+    ```rs
+    fn nothing_doër<'lt>(_: &'lt String)
+      -> impl Fn()
+    {
+        || ()
+    }
+
+    let f = {
+        let local = String::from("…");
+        nothing_doër(&local)
+    };
+    f() // ✅ OK
+    ```
+
+    But the following does not:
+
+    ```rs
+    fn nothing_doër<T>(_: T)
+      -> impl Fn()
+    {
+        || ()
+    }
+
+    let f = {
+        let local = String::from("…");
+        nothing_doër(&local)
+    };
+    f() // ❌ Error, `local` does not live long enough!
+    ```
+
+    😬
+
+    ___
+
+    </details>
+
 ### `-> impl Trait` does not implicitly capture generic _"lifetime"_ parameters in scope
 
 This is not an oversight of mine (nor of the language), but rather a deliberate choice of the design of `-> impl Trait`. See the associated RFC for more info about it, and the rationale behind that choice.
@@ -195,7 +235,7 @@ Which means `(a, b)` is only usable within the _intersection_ of the `'a` and `'
 
     An `impl 'a + 'b` bottle of milk would, on the other hand, have meant that it would have been drinkable both before next week, and before next month, so effectively before next month (`'a = max('a, 'b) = union('a, 'b)`).
 
-What we meant to say was precisely that `(a, b)` is infected by both `'a` and `'b`, _i.e._, that it is `InfectedBy<'a> + InfectedBy<'b>`:
+What we want to say is precisely that `(a, b)` is infected by both `'a` and `'b`, _i.e._, that it is `InfectedBy<'a> + InfectedBy<'b>`:
 
 ```rs
 fn example<'a, 'b>(
@@ -212,13 +252,13 @@ fn example<'a, 'b>(
 Granted, the previous function can be simplified:
 
 ```rs
-fn example<'intersection>(
-    a: &'intersection str,
-    b: &'intersection str,
-) -> impl 'intersection + Fn(bool)
+fn example<'intersection_of_a_and_b>(
+    a: &'intersection_of_a_and_b str,
+    b: &'intersection_of_a_and_b str,
+) -> impl 'intersection_of_a_and_b + Fn(bool)
 ```
 
-  - since `'a` and `'b`, from the call-sites, would be able to **shrink down** to some `'intersection` region smaller than both, which would bring us back to a single-lifetime scenario, and thus to using the convenient `+ 'usability` syntax to get the returned existential to be infected by `'intersection`.
+  - since `'a` and `'b`, from the call-sites, would be able to **shrink down** to some `'intersection_of_a_and_b` region smaller than both, which would bring us back to a single-lifetime scenario, and thus to using the convenient `+ 'usability` syntax to get the returned existential to be infected by `'intersection_of_a_and_b`.
 
 But in more complex APIs, lifetimes may not be able to shrink, and a proper solution needs to be used if you are to make it work.
 
