@@ -6,6 +6,9 @@ on:
       - master
   pull_request:
 
+permissions:
+  contents: write
+
 env:
   URL_ROOT_PATH: /safer_ffi/
 
