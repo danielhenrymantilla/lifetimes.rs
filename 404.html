@@ -87,7 +87,7 @@
         <script type="text/javascript">
             var html = document.querySelector('html');
             var sidebar = 'hidden';
-            if (true || document.body.clientWidth >= 1080) {
+            if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
             }
