@@ -75,7 +75,7 @@ We have two dual but equivalent points of view that make this right:
             egg: Egg<'actual_expiry>,
         )
         where
-            //             ⊇
+            //             ≥
             'actual_expiry : 'expiry,
         {
             Self::stuff(

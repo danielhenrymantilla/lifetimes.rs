@@ -10,6 +10,8 @@ fn async_fn<'a, 'b>(
     a: Arc<Mutex<&'a str>>,
     b: Arc<Mutex<&'b str>>,
 ) -> BoxFuture<'a ^ 'b, i32>
+//                👆
+//           pseudo-code for `intersection('a, 'b)`
 ```
 
 <details><summary>Why</summary>
@@ -84,6 +86,8 @@ To anticipate any of these cases, it's actually very sensible to learn to do wha
     }
     ```
 
+      - See [`InfectedBy<'_>`](./return-position-impl-trait.md)
+
  1. We `Pin<Box>`-wrap it:
 
     ```rs
@@ -104,14 +108,12 @@ To anticipate any of these cases, it's actually very sensible to learn to do wha
     }
     ```
 
-      - See [`InfectedBy<'_>`](./return-position-impl-trait.md)
-
  1. We let it `dyn`:
 
     ```diff
     ) -> Pin<Box<
     -       impl Future<Output = i32>
-    +       dyn  Future<Output = i32>
+    +        dyn Future<Output = i32>
                + InfectedBy<'a> + InfectedBy<'b>
         >>
         {
@@ -123,7 +125,7 @@ To anticipate any of these cases, it's actually very sensible to learn to do wha
     }
     ```
 
-      - We'll do `?Send` here, that is, we won't bother with `Send`-ness.
+      - We won't bother with `Send`-ness, here.
 
  1. We can't really use `+ InfectedBy<'_>` with `dyn` (and don't really need to, as we'll see below), so we get rid of that too:
 
@@ -146,9 +148,9 @@ And now the million dogecoin question is to know which lifetime we put here:
   - `dyn 'b + Future…` ?
       - _vice versa_: ❌
   - `dyn 'a + 'b + Future…` ?
-      - Papering over the fact Rust doesn't let us write `dyn 'a + 'b + …` for some reason, this would not be right, since this is expresses a `'usability` that includes `'a` _and_  `'b`, and we've seen that each of this is already problematic, so a bigger usability is even more problematic.
+      - Papering over the fact Rust doesn't let us write `dyn 'a + 'b + …` for some reason, this would not be right, since this is expresses a `'usability` that includes `'a` _and_  `'b`, and we've seen that each of these is already problematic, so a bigger usability will be just as problematic, if not more!
 
-I've talked about all this in more detail over the [section about `-> impl Trait`](./return-position-impl-trait.md), which also happens to mention the answer.
+  - I've talked about all this in more detail over the [section about `-> impl Trait`](./return-position-impl-trait.md), which also happens to mention the answer.
 
 The gist of the answer is that:
 
@@ -175,7 +177,7 @@ fn async_fn<'a, 'b>(
 
 </details>
 
-Alas, we can't write that. Indeed, `'a ^ 'b` (that is, the intersection of `'a` and `'b`) is not a thing expressible in Rust (to keep things simpler I guess). So we have to resort to quantifications and set theory to express this property.
+Alas, we can't write that. Indeed, `'a ^ 'b` does not exist in current Rust (to keep things "simpler" I guess). So we have to resort to quantifications and set theory to express this property.
 
 Behold, what peak "simpler" looks like:
 

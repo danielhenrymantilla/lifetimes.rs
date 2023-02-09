@@ -60,20 +60,20 @@ The latter point, I'd say, is really the critical difference from a theoretical 
 
 It is a rather simple type, which happens to be covariant in `T`.
 
-### Covariance (using `&'long X <: &'short X`)
+### Covariance (using `&'long X ➘ &'short X`)
 
 Let's try with `type T = &'long String;`, and trying to reach the `type T = &'short String;`, since the former subtypes the latter:
 
 ```rs
-&'short (&'long String) <: &'short (&'short String)
+&'short (&'long String) ➘ &'short (&'short String)
 // by covariance (in T) of `&'short T`
-// since &'long String <: &'short String
+// since &'long String ➘ &'short String
 // since 'long ⊇ 'short
 ```
 
 ✅
 
-### Coercion? (using the `&'long mut X -> &'long X` coercion)
+### Coercion? (using the `&'long mut X ⇒ &'long X` coercion)
 
 Now let's try with `type T = &'long mut String`, and trying to go to `type T = &'long String;`, since we know the former can be coerced to the latter:
 
@@ -108,7 +108,7 @@ error[E0308]: mismatched types
 
 Not only does it error, but there is actually no way to write this soundly.
 
-Indeed, such operation is unsound, _i.e._, it makes it possible, using it and non-`unsafe` Rust, to trigger UB/memory-corruption:
+Indeed, such operation is unsound, _i.e._, if it existed, it would make it possible, using it and non-`unsafe` Rust, to trigger UB/memory-corruption:
 
  1. Given:
     ```rs
@@ -147,7 +147,7 @@ Indeed, such operation is unsound, _i.e._, it makes it possible, using it and no
     }
     ```
 
-    Which means we have a (shared) reference _aliasing_ with an _exclusive_ one! UB
+    Which means we'd have a (shared) reference _aliasing_ with an _exclusive_ one! UB
 
  1. For instance:
 
