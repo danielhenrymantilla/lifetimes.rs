@@ -13,21 +13,26 @@
   - Examples of coercions:
 
     ```rs
-    fn implicit_coercions(r: &'_ mut Box<[u8; 4]>)
+    fn implicit_coercions(a: &'_ mut Box<[u8; 4]>)
     {
         // `&mut` to `*mut` (& friends)
-        let _: *mut _ = r /* as _ */;
+        let _: *mut _ = a /* as _ */;
 
-        // `&mut` to `&`:
-        let r: &Box<[u8; 4]> = r /* as _ */;
+        // `&mut` to `&` (this is not subtyping!)
+        let b: &Box<[u8; 4]> = a /* as _ */;
 
         // `&impl Deref` to `&Deref::Output`
-        let r: &[u8; 4] = r /* as _ */;
+        let c: &[u8; 4] = b /* as _ */;
 
         // Unsized coercions:
-        let _: &[u8] = r /* as _ */;
-        let _: &dyn ::core::any::Any = r /* as _ */;
+        let _: &[u8] = c /* as _ */;
+        let d: &dyn SubTrait = c /* as _ */;
+        // `feature(trait_upcasting)`
+        let _: &dyn SuperTrait = d /* as _ */;
     }
+    // where:
+    use ::core::any::Any as SuperTrait;
+    trait SubTrait : SuperTrait {}
     ```
 
 There are two differences between subtyping and implicit coercions:

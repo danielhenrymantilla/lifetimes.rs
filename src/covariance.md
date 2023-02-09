@@ -1,6 +1,6 @@
 # Covariance: when "lifetimes" can shrink
 
-So, from the previous chapter we've seen that sometimes, there is a seemingly silly operation which can be done: that of shrinking or shortening expiry-dates / regions / "lifetimes".
+So, in some of the previous chapters we've seen that sometimes, there is a seemingly silly operation which can be done: that of shrinking or shortening expiry-dates / regions / "lifetimes".
 
 For instance, let's consider the simplest lifetime-infected type: a borrow (to, say, some primitive type):
 

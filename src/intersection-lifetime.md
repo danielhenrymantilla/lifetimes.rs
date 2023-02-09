@@ -1,6 +1,6 @@
 # Intersection lifetime
 
-Imagine we want to write:
+Imagine wanting to write:
 
 ```rs
 //! Pseudo-code
@@ -40,7 +40,13 @@ In fact, one can define the intersection with that property:
 A ∩ B = C = max { I where A ⊇ I and B ⊇ I }
 ```
 
-Back to Rust, two point of views are possible:
+Back to Rust, this becomes:
+
+```rs
+'a ^ 'b = max { 'i where 'a : 'i, 'b : 'i }
+```
+
+And two point of views are possible:
 
   - either we realize we don't necessarily _need the max_ exactly, that something Big Enough™ would suffice. For instance, in our `dyn` example, we can realize that a subset of the actual intersection can suffice in practice (the subset where we actually use the `dyn`).
 
@@ -50,12 +56,13 @@ Back to Rust, two point of views are possible:
 
     With this more magical but simpler point of view, we just introduce `I` and let Rust auto-maximize it as needed into the actual full intersection of `A` and `B`: `A ∩ B`.
 
+```rs
+'a ^ 'b ≈ 'i where 'a : 'i, 'b : 'i
+```
+
 In both cases we end up with the following recipe for something like an intersection "lifetime"/region of regions `'r0`, …, `'rN`:
 
-```rs
-// we want:
-let 'i = 'r0 ^ … ^ 'rN
-```
+#### Recipe for `'i = 'r0 ^ … ^ 'rN`
 
  1. `<'i>` (let there be `I`)
 
@@ -65,10 +72,11 @@ let 'i = 'r0 ^ … ^ 'rN
 
     ```rs
     where
-        'r0 : 'i, // R0 ⊇ I
-        'r1 : 'i, // R1 ⊇ I
+        //  ⊇
+        'r0 : 'i,
+        'r1 : 'i,
         …
-        'rN : 'i, // RN ⊇ I
+        'rN : 'i,
     ```
 
     as `where` clauses so as to guarantee that `I` is one of the `{ I where R0 ⊇ I and … and RN ⊇ I }`.

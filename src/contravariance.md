@@ -98,3 +98,32 @@ That is:
 ```rs
 fn(Egg<'short>) ➘ fn(Egg<'long>)
 ```
+
+## Composition rules for a contravariant type-generic type
+
+The gist of it is that a type-generic contravariant type, such as:
+
+```rs
+type MyGenericCb<Arg> = fn(Arg);
+```
+
+will **flip the variance** of the stuff written as `Arg`.
+
+  - For instance, consider:
+
+    ```rs
+    type Example<'lt> = fn(bool, fn(u8, &'lt str));
+    ```
+
+      - Don't try to imagine this type used in legitimate Rust or you may sprain your brain 🤕
+
+    That is, `MyGenericCb<Arg<'lt>>` where `type Arg<'lt> = fn(u8, &'lt str);`.
+
+     1. `type Arg<'lt> = fn(u8, &'lt str);` is contravariant;
+     1. `type MyGenericCb<Arg> = fn(bool, Arg)` is contravariant, so it **flips the variance** of the inner `Arg<'lt>`
+     1. That is, `MyGenericCb<Arg<'lt>>` is "contra-contravariant", _i.e._,
+        ```rs
+        type Example<'lt> = fn(bool, fn(u8, &'lt str))
+                          = MyGenericCb<Arg<'lt>>
+        ```
+        is covariant.

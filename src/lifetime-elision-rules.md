@@ -1,10 +1,8 @@
-Since writing yadda yadda…
-
 # Lifetime elision
 
   - Prerequisite: [elided lifetimes](./elided-lifetimes.md).
 
-The lifetime elision rules are just there as _convenience sugar_ for what could otherwise be written in a more verbose manner. As with any sugar that does not want to become overly terse and footgunny (cough, C++, cough), it only makes sense to have it in clear unambiguous cases.
+The lifetime elision rules are just there as **convenience sugar** for what could otherwise be written in a more verbose manner. As with any sugar that does not want to become overly terse and footgunny (cough, C++, cough), it only makes sense to have it **in clear unambiguous cases**.
 
 ## Lifetime elision in function _bodies_
 
@@ -15,15 +13,26 @@ Inside function _bodies_, that is, in a place where _type inference is allowed_,
 By "function signatures" the following rules will apply to:
 
   - A function (item) signature:
-      - `fn some_func(…) -> …`
+      - ```rs
+        fn some_func(…) -> …
+        ```
 
   - A function pointer type:
-      - `type MyCb = fn(…) -> …;`
+      - ```rs
+        type MyCb = fn(…) -> …;
+        //          ^^^^^^^^^^
+        ```
 
   - A `Fn{,Mut,Once}` trait bound:
-      - `: Fn{,Mut,Once}(…) -> …`
-      - `impl Fn{,Mut,Once}(…) -> …`
-      - `dyn Fn{,Mut,Once}(…) -> …`
+      - ```rs
+        : Fn{,Mut,Once}(…) -> …
+        ```
+      - ```rs
+        impl Fn{,Mut,Once}(…) -> …
+        ```
+      - ```rs
+        dyn Fn{,Mut,Once}(…) -> …
+        ```
 
 So, for all these, it turns out there are only two categories of "clear unambiguous cases":
 
@@ -39,7 +48,7 @@ So, for all these, it turns out there are only two categories of "clear unambigu
     Since there isn't really any room for lifetimes/borrows subtleties here, the unsugaring will be a maximally flexible one. Given that **repeating a lifetime parameter name is a restriction** (wherein two lifetime-generic types will need to be using equal "lifetimes" / matching regions), we get to be maximaly flexible / lenient / loose by _not_ doing that: by introducing and using _distinct lifetime_ parameters for each lifetime placeholder:
 
     ```rust
-    fn eq<'s1, 's2> (s1: &'s1 str, s2: &'s2 str)
+    fn eq<'s1, 's2>(s1: &'s1 str, s2: &'s2 str)
       -> bool
     ```
 
@@ -53,7 +62,7 @@ So, for all these, it turns out there are only two categories of "clear unambigu
         // replacing `&'_` with `&'_ mut` works too, of course.
         ```
 
-         1. **Single "lifetime" placeholder among all the inputs**;
+         1. In case of **single "lifetime" placeholder among all the inputs**;
          1. ⇒ the borrow of `SomeField` necessarily stems from it;
          1. ⇒ the output is to be "connected" to that input borrow by **repeating the lifetime parameter**.
 
@@ -144,11 +153,13 @@ dyn Traits // + 'usability?
 
 ## Lifetime elision in `impl Traits`
 
-Contrary to other situations, here `impl Traits` will follow different rules than those of `dyn Traits`.
-
 ### Return-position `-> impl Traits` (RPIT)
 
-[It's Complicated™](return-position-impl-trait.md)
+Similarly to `dyn`, here, `-> impl Traits ≠ -> impl '_ + Traits`.
+
+But contrary to other properties/aspects of type erasure (where `dyn` and `-> impl` can be quite similar), when dealing with lifetimes / captured generics, `impl Traits` happens to involve different semantics than those of `dyn Traits` ⚠️
+
+See [the dedicated section](return-position-impl-trait.md) for more info.
 
 
 ### Argument-position `impl Traits` (APIT)
@@ -159,12 +170,12 @@ Contrary to other situations, here `impl Traits` will follow different rules tha
 
 <details><summary>Rationale / actual semantics</summary>
 
-These are kind of analogous to:
+These are kind of analogous to the following:
+
+For each `impl Traits` occurrence,
  1. introducing a new generic _type_ parameter: `<T>`
  1. bounded by the `Traits`: `where T : Traits`
  1. and replacing the `impl Traits` with that parameter: `T`.
-
-Repeat for each `impl Traits` occurrence, even when repeated:
 
 ```rs
 fn example(a: impl Send, b: impl Send)
@@ -176,5 +187,7 @@ where
 ```
 
   - the only difference will be that in the latter signature, callers will be able to use turbofish to specify the actual choices of `A` or `B`, whereas in the former case this will be left for type inference.
+
+___
 
 </details>

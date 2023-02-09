@@ -2,15 +2,15 @@
 
 [Introduction](README.md)
 
-- [What is a "lifetime"?](what-is-a-lifetime.md)
+- [What is a "lifetime"?]() <!-- what-is-a-lifetime.md) -->
 
 # Core notions
 
 - [Case study: the `pick()` function](pick-function.md)
 
 
-- [Chapter 1](./chapter_1.md)
-- [Bar](./bar.md)
+- [Chapter 1]() <!-- ./chapter_1.md) -->
+- [Bar]() <!-- ./bar.md) -->
 
 # Reference
 
@@ -18,7 +18,7 @@
 
 - [Variance](variance-intro.md)
 
-    - [Some eggsamples of variance](eggs.md)
+    <!-- - [Some eggsamples of variance](eggs.md) -->
 
     - [Covariance: when lifetimes can shrink](covariance.md)
 

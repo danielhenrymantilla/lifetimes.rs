@@ -285,7 +285,7 @@ fn impl_<'a, 'b>(
 Note that `dyn Trait` is _actual_ type erasure, so if you manage to get your hands on the `'intersection` lifetime of all the captured lifetime and type parameters, then you can simply use `+ 'intersection` and Rust won't complain even when bigger unshrinkable lifetimes are part of the before-erasure type (in other words, type erasure is kind of able to shrink even otherwise unshrinkable lifetimes):
 
 ```rs
-fn dyn_<'i, 'a : 'i, 'b : 'i>( // `intersection('a, 'b) ⊇ 'i`.
+fn dyn_<'i, 'a : 'i, 'b : 'i>( // intersection('a, 'b) ⊇ 'i
     a: Arc<Mutex<&'a str>>,
     b: Arc<Mutex<&'b str>>,
 ) -> Box<dyn 'i + Fn(bool)>
