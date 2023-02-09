@@ -1,0 +1,411 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>async fn unsugaring / lifetime - Rust lifetimes: from 'static to ecstatic</title>
+        
+        
+
+
+        <!-- Custom HTML head -->
+        
+
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        
+        <link rel="icon" href="favicon.svg">
+        
+        
+        <link rel="shortcut icon" href="favicon.png">
+        
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        
+        <link rel="stylesheet" href="css/print.css" media="print">
+        
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        
+        <link rel="stylesheet" href="fonts/fonts.css">
+        
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (true || document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.</strong> What is a &quot;lifetime&quot;?</div></li><li class="chapter-item expanded affix "><li class="part-title">Core notions</li><li class="chapter-item expanded "><a href="pick-function.html"><strong aria-hidden="true">2.</strong> Case study: the pick() function</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Chapter 1</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Bar</div></li><li class="chapter-item expanded affix "><li class="part-title">Reference</li><li class="chapter-item expanded "><a href="lifetime-elision-rules.html"><strong aria-hidden="true">5.</strong> Lifetime elision rules</a></li><li class="chapter-item expanded "><a href="variance-intro.html"><strong aria-hidden="true">6.</strong> Variance</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="covariance.html"><strong aria-hidden="true">6.1.</strong> Covariance: when lifetimes can shrink</a></li><li class="chapter-item expanded "><a href="contravariance.html"><strong aria-hidden="true">6.2.</strong> Contravariance: when lifetimes can grow</a></li><li class="chapter-item expanded "><a href="variance-rules.html"><strong aria-hidden="true">6.3.</strong> Variance rules: a recap</a></li></ol></li><li class="chapter-item expanded "><a href="return-position-impl-trait.html"><strong aria-hidden="true">7.</strong> Lifetime semantics of -&gt; impl Trait</a></li><li class="chapter-item expanded "><a href="intersection-lifetime.html"><strong aria-hidden="true">8.</strong> Intersection lifetime</a></li><li class="chapter-item expanded "><a href="async-fn.html" class="active"><strong aria-hidden="true">9.</strong> async fn unsugaring / lifetime</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">Niche stuff</li><li class="chapter-item expanded "><div><strong aria-hidden="true">10.</strong> impl&lt;#[may_dangle] …&gt; Drop</div></li><li class="spacer"></li><li class="chapter-item expanded "><a href="appendix.html"><strong aria-hidden="true">11.</strong> Appendix</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="elided-lifetimes.html"><strong aria-hidden="true">11.1.</strong> Elided lifetimes / what is '_</a></li><li class="chapter-item expanded "><a href="usability.html"><strong aria-hidden="true">11.2.</strong> Trait + 'lifetime</a></li><li class="chapter-item expanded "><a href="subtyping-vs-coercions.html"><strong aria-hidden="true">11.3.</strong> Subtyping vs. Coercions</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><div>Closing thoughts</div></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        
+                    </div>
+
+                    <h1 class="menu-title">Rust lifetimes: from 'static to ecstatic</h1>
+
+                    <div class="right-buttons">
+                        
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        
+                        
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#async-fn-unsugaring--lifetime" id="async-fn-unsugaring--lifetime"><code>async fn</code> unsugaring / lifetime</a></h1>
+<p>Consider, for instance:</p>
+<pre><code class="language-rs">trait Trait {
+    async fn async_fn&lt;'a, 'b&gt;(
+        a: Arc&lt;Mutex&lt;&amp;'a str&gt;&gt;,
+        b: Arc&lt;Mutex&lt;&amp;'b str&gt;&gt;,
+    ) -&gt; i32
+    {
+        dbg!(a.lock());
+        dbg!(b.lock());
+        42
+    }
+}
+</code></pre>
+<p>As of <code>1.66.1</code>, in Rust, this cannot be written directly, since</p>
+<pre><code class="language-rs">async fn f(…) -&gt; Ret
+</code></pre>
+<p>is sugar for</p>
+<pre><code class="language-rs">fn f(…) -&gt; impl Future&lt;Output = Ret&gt;
+</code></pre>
+<p>and <code>-&gt; impl Trait</code> cannot be used in traits yet.</p>
+<p>In the case of <code>Future</code>, which is a <code>dyn</code>-able trait, and which is <code>Pin&lt;Box&gt;</code>-transitive (<em>i.e.</em>, given <code>T : ?Sized</code>, if <code>T : Future</code> then <code>Pin&lt;Box&lt;T&gt;&gt; : Future&lt;Output = T::Output&gt;</code>), a workaround for this limitation is thus to write the function as <code>-&gt; Pin&lt;Box&lt;dyn Future…&gt;&gt;</code>.</p>
+<p>And since the process is:</p>
+<ul>
+<li><input disabled="" type="checkbox" checked=""/>
+tedious,</li>
+<li><input disabled="" type="checkbox" checked=""/>
+quite automatable,</li>
+<li><input disabled="" type="checkbox" checked=""/>
+and yet a bit subtle at times,</li>
+</ul>
+<p>we end up with —you guessed it— macros to do this for us, such as <a href="https://docs.rs/async-trait/0.1.64/async_trait/index.html"><code>#[async_trait]</code></a></p>
+<p>But how does <a href="https://docs.rs/async-trait/0.1.64/async_trait/index.html"><code>#[async_trait]</code></a> do it?</p>
+<ul>
+<li>
+<p>Answering this question is more important than just intellectual curiosity. Indeed, what if:</p>
+<ul>
+<li>we didn't have access to it;</li>
+<li>we had to deal with a distinct trait or use case not covered by it;</li>
+<li>or ran into <a href="https://play.rust-lang.org/?version=stable&amp;mode=debug&amp;edition=2021&amp;gist=529ab9fcde6ea24f149a494560ba8ff5"><code>#[async_trait]</code> bugs/limitations</a></li>
+</ul>
+</li>
+</ul>
+<p>To anticipate any of these cases, it's actually very sensible to learn to do what <a href="https://docs.rs/async-trait/0.1.64/async_trait/index.html"><code>#[async_trait]</code></a> does.</p>
+<ol>
+<li>
+<p>So we start off</p>
+<pre><code class="language-rs">trait Trait {
+    async fn async_fn&lt;'a, 'b&gt;(
+        a: Arc&lt;Mutex&lt;&amp;'a str&gt;&gt;,
+        b: Arc&lt;Mutex&lt;&amp;'b str&gt;&gt;,
+    ) -&gt; i32
+    {
+        …
+    }
+}
+</code></pre>
+</li>
+<li>
+<p>We replace <code>async fn … -&gt; Ret</code> with <code>fn … -&gt; impl Future&lt;Output = Ret&gt;</code>:</p>
+<pre><code class="language-rs">trait Trait {
+    fn async_fn&lt;'a, 'b&gt;(
+        a: Arc&lt;Mutex&lt;&amp;'a str&gt;&gt;,
+        b: Arc&lt;Mutex&lt;&amp;'b str&gt;&gt;,
+    ) -&gt; impl Future&lt;Output = i32&gt;
+            + InfectedBy&lt;'a&gt; + InfectedBy&lt;'b&gt;
+    {
+        async move {
+            let _captures = (&amp;a, &amp;b);
+            …
+        }
+    }
+}
+</code></pre>
+<ul>
+<li>See <a href="./return-position-impl-trait.html"><code>InfectedBy&lt;'_&gt;</code></a></li>
+</ul>
+</li>
+<li>
+<p>We <code>Pin&lt;Box&gt;</code>-wrap it:</p>
+<pre><code class="language-rs">trait Trait {
+    fn async_fn&lt;'a, 'b&gt;(
+        a: Arc&lt;Mutex&lt;&amp;'a str&gt;&gt;,
+        b: Arc&lt;Mutex&lt;&amp;'b str&gt;&gt;,
+    ) -&gt; Pin&lt;Box&lt;
+            impl Future&lt;Output = i32&gt;
+               + InfectedBy&lt;'a&gt; + InfectedBy&lt;'b&gt;
+        &gt;&gt;
+    {
+        Box::pin(async move {
+            let _captures = (&amp;a, &amp;b);
+            …
+        })
+    }
+}
+</code></pre>
+</li>
+<li>
+<p>We let it <code>dyn</code>:</p>
+<pre><code class="language-diff">) -&gt; Pin&lt;Box&lt;
+-       impl Future&lt;Output = i32&gt;
++        dyn Future&lt;Output = i32&gt;
+           + InfectedBy&lt;'a&gt; + InfectedBy&lt;'b&gt;
+    &gt;&gt;
+    {
+        Box::pin(async move {
+            let _captures = (&amp;a, &amp;b);
+            …
+        })
+    }
+}
+</code></pre>
+<ul>
+<li>We won't bother with <code>Send</code>-ness, here.</li>
+</ul>
+</li>
+<li>
+<p>We can't really use <a href="./return-position-impl-trait.html"><code>+ InfectedBy&lt;'_&gt;</code></a> with <code>dyn</code> (and don't really need to, as we'll see below), so we get rid of that too:</p>
+<pre><code class="language-diff">      dyn Future&lt;Output = i32&gt;
+-       + InfectedBy&lt;'a&gt; + InfectedBy&lt;'b&gt;
++       + '???
+</code></pre>
+</li>
+</ol>
+<p>At this point we've ended up with the following return type:</p>
+<pre><code class="language-rs">dyn '??? + Future&lt;Output = i32&gt;
+</code></pre>
+<p>And now the million dogecoin question is to know which lifetime we put here:</p>
+<ul>
+<li><code>dyn 'a + Future…</code> ?
+<ul>
+<li>May cover a region outside that of <code>'b</code>, so our future may dangle in there: ❌</li>
+</ul>
+</li>
+<li><code>dyn 'b + Future…</code> ?
+<ul>
+<li>symmetrical situation: ❌</li>
+</ul>
+</li>
+<li><code>dyn 'a + 'b + Future…</code> ?
+<ul>
+<li>Papering over the fact Rust doesn't let us write <code>dyn 'a + 'b + …</code> for some reason, this cannot be right, since this expresses a <code>'usability</code> that includes <code>'a</code> <em>and</em>  <code>'b</code>, and we've seen that each of these is already problematic, so a bigger usability will be just as problematic, if not more!</li>
+</ul>
+</li>
+</ul>
+<p>I've talked about all this in more detail over the <a href="./return-position-impl-trait.html">section about <code>-&gt; impl Trait</code></a>, which also happens to mention the answer.</p>
+<p>The gist of the answer is that:</p>
+<blockquote>
+<p>An <code>impl InfectedBy&lt;'a&gt; + InfectedBy&lt;'b&gt;</code> is only usable within the <strong>intersection of <code>'a</code> and <code>'b</code></strong>.</p>
+<pre><code class="language-rs">InfectedBy&lt;'a, 'b&gt; : 'a ^ 'b
+</code></pre>
+</blockquote>
+<ul>
+<li>Where <code>'a ^ 'b</code> is pseudo-code syntax to express <a href="./intersection-lifetime.html">the intersection</a> of <code>'a</code> and <code>'b</code>.</li>
+</ul>
+<p>In other words, our <code>'???</code> / the &quot;<code>'usability</code>&quot; of such an entity is <code>'a ^ 'b</code>.</p>
+<p>So we end up needing to write:</p>
+<pre><code class="language-rs">//! Pseudo-code
+
+fn async_fn&lt;'a, 'b&gt;(
+    a: Arc&lt;Mutex&lt;&amp;'a str&gt;&gt;,
+    b: Arc&lt;Mutex&lt;&amp;'b str&gt;&gt;,
+) -&gt; BoxFuture&lt;'a ^ 'b, i32&gt;
+</code></pre>
+<hr />
+<p>This, as the non-existing-in-Rust <code>'a ^ 'b</code> syntax suggests, is not real Rust code. See the <a href="./intersection-lifetime.html">intersection lifetime section</a> to know more about how the above ends up becoming:</p>
+<pre><code class="language-rs">//! Real-code!
+
+fn async_fn&lt;'fut, 'a, 'b&gt;(
+    a: Arc&lt;Mutex&lt;&amp;'a str&gt;&gt;,
+    b: Arc&lt;Mutex&lt;&amp;'b str&gt;&gt;,
+) -&gt; BoxFuture&lt;'fut, i32&gt;
+where
+    // ⊇
+    'a : 'fut, 'b : 'fut,
+ // 'a ^ 'b ⊇ 'fut
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="intersection-lifetime.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="appendix.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a rel="prev" href="intersection-lifetime.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a rel="next" href="appendix.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>

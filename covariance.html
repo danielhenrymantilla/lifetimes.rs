@@ -1,0 +1,430 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Covariance: when lifetimes can shrink - Rust lifetimes: from 'static to ecstatic</title>
+        
+        
+
+
+        <!-- Custom HTML head -->
+        
+
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        
+        <link rel="icon" href="favicon.svg">
+        
+        
+        <link rel="shortcut icon" href="favicon.png">
+        
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        
+        <link rel="stylesheet" href="css/print.css" media="print">
+        
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        
+        <link rel="stylesheet" href="fonts/fonts.css">
+        
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (true || document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.</strong> What is a &quot;lifetime&quot;?</div></li><li class="chapter-item expanded affix "><li class="part-title">Core notions</li><li class="chapter-item expanded "><a href="pick-function.html"><strong aria-hidden="true">2.</strong> Case study: the pick() function</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Chapter 1</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Bar</div></li><li class="chapter-item expanded affix "><li class="part-title">Reference</li><li class="chapter-item expanded "><a href="lifetime-elision-rules.html"><strong aria-hidden="true">5.</strong> Lifetime elision rules</a></li><li class="chapter-item expanded "><a href="variance-intro.html"><strong aria-hidden="true">6.</strong> Variance</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="covariance.html" class="active"><strong aria-hidden="true">6.1.</strong> Covariance: when lifetimes can shrink</a></li><li class="chapter-item expanded "><a href="contravariance.html"><strong aria-hidden="true">6.2.</strong> Contravariance: when lifetimes can grow</a></li><li class="chapter-item expanded "><a href="variance-rules.html"><strong aria-hidden="true">6.3.</strong> Variance rules: a recap</a></li></ol></li><li class="chapter-item expanded "><a href="return-position-impl-trait.html"><strong aria-hidden="true">7.</strong> Lifetime semantics of -&gt; impl Trait</a></li><li class="chapter-item expanded "><a href="intersection-lifetime.html"><strong aria-hidden="true">8.</strong> Intersection lifetime</a></li><li class="chapter-item expanded "><a href="async-fn.html"><strong aria-hidden="true">9.</strong> async fn unsugaring / lifetime</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">Niche stuff</li><li class="chapter-item expanded "><div><strong aria-hidden="true">10.</strong> impl&lt;#[may_dangle] …&gt; Drop</div></li><li class="spacer"></li><li class="chapter-item expanded "><a href="appendix.html"><strong aria-hidden="true">11.</strong> Appendix</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="elided-lifetimes.html"><strong aria-hidden="true">11.1.</strong> Elided lifetimes / what is '_</a></li><li class="chapter-item expanded "><a href="usability.html"><strong aria-hidden="true">11.2.</strong> Trait + 'lifetime</a></li><li class="chapter-item expanded "><a href="subtyping-vs-coercions.html"><strong aria-hidden="true">11.3.</strong> Subtyping vs. Coercions</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><div>Closing thoughts</div></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        
+                    </div>
+
+                    <h1 class="menu-title">Rust lifetimes: from 'static to ecstatic</h1>
+
+                    <div class="right-buttons">
+                        
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        
+                        
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#covariance-when-lifetimes-can-shrink" id="covariance-when-lifetimes-can-shrink">Covariance: when &quot;lifetimes&quot; can shrink</a></h1>
+<p>So, in some of the previous chapters we've seen that sometimes, there is a seemingly silly operation which can be done: that of shrinking or shortening expiry-dates / regions / &quot;lifetimes&quot;.</p>
+<p>For instance, let's consider the simplest lifetime-infected type: a borrow (to, say, some primitive type):</p>
+<pre><code class="language-rs">&amp;'borrow i32
+// but also:
+&amp;'borrow mut i32
+</code></pre>
+<p>When you got your hands on such a thing with a <code>'long</code> borrow, if you have to feed it to some API that wants a <code>'short</code> borrow instead, you can!</p>
+<pre><code class="language-rs">use ::core::convert::identity;
+
+fn demo&lt;'short, 'long : 'short&gt;(
+    r: &amp;'long mut i32,
+) -&gt; &amp;'short mut i32
+{
+    identity::&lt;&amp;'short mut i32&gt;(r) // ✅ OK!
+}
+</code></pre>
+<p>This is called a <em>subtyping relation</em>, and <a href="./subtyping-vs-coercions.html">you may observe that it is quite similar to an implicit coercion</a>.</p>
+<h3><a class="header" href="#is-shrinking-lifetimes-really-silly" id="is-shrinking-lifetimes-really-silly">Is shrinking lifetimes really &quot;silly&quot;?</a></h3>
+<details><summary>Click to see this section</summary>
+<p>I guess the main example would be when trying to put together references with distinct lifetimes into a single collection such as a <code>Vec</code>:</p>
+<pre><code class="language-rs">let local = String::from(&quot;…&quot;);
+let names: Vec&lt;&amp;str&gt; = vec![local.as_str(), &quot;static str&quot;];
+</code></pre>
+<p>Or, similarly, when type-unifying the output of two branches:</p>
+<pre><code class="language-rs">let storage: PathBuf;
+let file_to_read: &amp;Path =
+    match ::std::env::args_os().nth(1) {
+        | Some(s) =&gt; {
+            storage = s.into();
+            &amp;storage
+        },
+        // no `.to_owned()` whatsoever needed in this branch 💪
+        | None =&gt; &quot;default-file.toml&quot;.as_ref(),
+    }
+;
+</code></pre>
+<p>Finally, remember the <a href="pick-function.html"><code>pick()</code> function section</a>:</p>
+<pre><code class="language-rs">fn pick&lt;'ret&gt;(
+    left: &amp;'ret str,
+    right: &amp;'ret str,
+) -&gt; &amp;'ret str
+{
+    if … { left } else { right }
+}
+</code></pre>
+<p>Imagine trying to call <code>pick()</code> on a <code>&amp;String::from(&quot;…&quot;)</code> and a <code>&quot;static str&quot;</code>: with this signature, the borrows are constrained to have equal lifetimes! Lifetime shrinkage to the rescue 🙂</p>
+<p>Even in the more pedantic case of doing:</p>
+<pre><code class="language-rs">fn pick&lt;'ret, 'left, 'right&gt;(
+    left: &amp;'left str,
+    right: &amp;'right str,
+) -&gt; &amp;'ret str
+where
+    'left : 'ret,
+    'right : 'ret,
+{
+    // Here, we have `'left` and `'right` lifetimes in  branch;
+    // by covariance they get to shrink-unify down to some `'ret` intersection.
+    if … { left } else { right }
+}
+</code></pre>
+<p>notice how the <code>left</code> and <code>right</code> expressions in each branch of the <code>if</code>, respectively, <em>by allowing the lifetime within each to shrink</em>, managed to unify under a single shrunk lifetime, <code>'ret</code> (cough <a href="./intersection-lifetime.html">intersection</a> cough).</p>
+</details>
+<h2><a class="header" href="#covariance-a-definition" id="covariance-a-definition">Covariance, a definition</a></h2>
+<h3><a class="header" href="#covariant-lifetime-parameter" id="covariant-lifetime-parameter">Covariant lifetime parameter</a></h3>
+<p>So, this property of certain <strong>generic</strong> lifetime <strong>parameters</strong> being allowed to <strong>shrink</strong> is called <strong>covariance</strong> (in that lifetime parameter). While most <em>generic</em> types will happen to be <em>covariant</em>, there is an important exception / counter-example which we need to be aware of:</p>
+<ul>
+<li><input disabled="" type="checkbox" checked=""/>
+mutable…</li>
+<li><input disabled="" type="checkbox" checked=""/>
+…borrows!</li>
+</ul>
+<p>When both properties are &quot;ticked&quot;/met, then any lifetime <em>in the borrowee</em> is not (allowed) to be shrunk. We say of such a lifetime that it is <strong>non-covariant</strong>, or for short<sup class="footnote-reference"><a href="#contra">1</a></sup>, <strong>invariant</strong>.</p>
+<ul>
+<li>⚠️ notice how we're talking of the lifetimes that <em>may</em> occur within <em>the borrowee</em>: the lifetime of the borrow itself is not part of the invariant stuff.</li>
+</ul>
+<p>For instance, let's look at the type of that second argument of <code>{Display,Debug}::fmt</code> function:</p>
+<pre><code class="language-rs">&amp;'_ mut Formatter&lt;'_&gt;
+</code></pre>
+<p>Naming the lifetimes, we end up with:</p>
+<pre><code class="language-rs">// mutable borrow of
+//  vvvvvvvvvvvv
+    &amp;'borrow mut Formatter&lt;'fmt&gt;
+//               ^^^^^^^^^^^^^^^
+//              invariant borrowee
+
+
+
+//  can shrink
+//      =
+//  covariant
+//   vvvvvvv
+    &amp;'borrow mut Formatter&lt;'fmt&gt;
+//                         ^^^^
+//                     cannot shrink (nor grow)
+//                           =
+//                       invariant
+</code></pre>
+<p>A more typical albeit potentially visually confusing example is when the borrowee is itself a borrow:</p>
+<pre><code class="language-rs">&amp;'borrow mut (&amp;'fmt str)
+</code></pre>
+<p>In both cases, we have a <code>&amp;mut</code>-able <code>'borrow</code>, with thus a <em>covariant</em>/shrinkable lifetime, and behind such borrow, a thus <em>invariant</em> borrowee, resulting in <code>'fmt</code> not being allowed to shrink (nor grow).</p>
+<ul>
+<li>
+<h4><a class="header" href="#reminder-that-shared-mutability-exists" id="reminder-that-shared-mutability-exists">Reminder that shared mutability exists</a></h4>
+<p>Note that the <em>unique borrow</em>, <code>&amp;mut</code>, is not the only form of <em>mutable borrow</em>. Consider, for instance:</p>
+<pre><code class="language-rs">// Covariant in `'borrow`, invariant in `'fmt`.
+&amp;'borrow Cell&lt;&amp;'fmt str&gt;
+</code></pre>
+<ul>
+<li>
+<p>To gain a better intuition of this, I highly recommend that you open your mind to the following &quot;statement&quot;:</p>
+<pre><code class="language-rs">use ::core::cell::Cell as Mut;
+</code></pre>
+<ul>
+<li>(this is a legitimate thing to do since <code>Cell</code> does indeed let you mutate &quot;its interior&quot;)</li>
+</ul>
+<p>Thay way we end up with:</p>
+<pre><code class="language-rs">&amp;'borrow Mut&lt;&amp;'fmt str&gt;
+</code></pre>
+</li>
+</ul>
+<p>Finally, for technical reasons<sup class="footnote-reference"><a href="#composition">2</a></sup>, it turns out that the harmless <em>owned</em> shared mutability wrappers have to be declared invariant as well, despite the lack of borrows:</p>
+<pre><code class="language-rs">// Invariant too!
+Cell&lt;&amp;'_ str&gt;
+</code></pre>
+<p>In practice, you're more likely to run into this when dealing with things like a <code><strong>Mut</strong> ex</code>, a <code>RwLock&lt;_&gt;</code>, or any form of <code>channel</code> (at least the <code>Sender&lt;_&gt;</code> end):</p>
+<pre><code class="language-rs">//! Invariant
+Mut ex&lt;&amp;'_ str&gt;
+RwLock&lt;&amp;'_ str&gt;
+RefCell&lt;&amp;'_ str&gt;
+channel::Sender&lt;&amp;'_ str&gt;
+</code></pre>
+</li>
+</ul>
+<h3><a class="header" href="#covariant-type-parameter-and-composition-rules" id="covariant-type-parameter-and-composition-rules">Covariant type parameter and composition rules</a></h3>
+<p>It turns out that saying:</p>
+<ul>
+<li>given <code>&amp;'borrow /* Borrowee */</code>,</li>
+<li>then, each lifetime occurring in <code>Borrowee</code> (if any),</li>
+<li>is covariant;</li>
+</ul>
+<p>is kind of a mouthful to say/write/express. We thus define this conventional term, when this occurs: we'll talk of <code>&amp;'borrow T</code> being covariant in the <code>T</code> <em>type parameter</em>.</p>
+<p>So a not-so-formal definition of type-parameter-covariance would be:</p>
+<ul>
+<li>
+<h4><a class="header" href="#determining-whether-a-t-generic-type-is-covariant" id="determining-whether-a-t-generic-type-is-covariant">Determining whether a <code>&lt;T&gt;</code>-generic type is covariant</a></h4>
+<p>A practical rule (of thumb) for determining whether a <code>&lt;T&gt;</code>-generic type is covariant (in <code>T</code>) is to replace <code>T</code> by, say. <code>&amp;'s str</code>, and seeing the covariance (in <code>'s</code>) of the resulting type, since that will then be the covariance of the <code>&lt;T&gt;</code>-generic type.</p>
+<p>Examples:</p>
+<ul>
+<li><details><summary>What is the covariance of <code>type Example&lt;T&gt; = (T, i32);</code>?</summary>
+<ol>
+<li>
+<p>We replace <code>T</code> with <code>&amp;'s str</code>: what is the covariance of <code>(&amp;'s str, i32)</code>?</p>
+</li>
+<li>
+<p>We somehow know that <code>type ExampleT&lt;'s&gt; = (&amp;'s str, i32)</code> is covariant (in <code>'s</code>).</p>
+</li>
+<li>
+<p>&quot;Thus&quot;, <code>Example&lt;T&gt;</code> is covariant (in <code>T</code>).</p>
+</li>
+</ol>
+</details>
+</li>
+<li><details><summary>What is the covariance of <code>type Example&lt;T&gt; = Arc&lt;Cell&lt;T&gt;&gt;;</code>?</summary>
+<ol>
+<li>
+<p>We replace <code>T</code> with <code>&amp;'s str</code>: what is the covariance of <code>Arc&lt;Cell&lt;&amp;'s str&gt;&gt;</code>?</p>
+</li>
+<li>
+<p>We know that &quot;lifetimes behind a <code>Cell</code> are invariant&quot;, so we know that:</p>
+<p><code>type ExampleT&lt;'s&gt; = Arc&lt;Cell&lt;&amp;'s str&gt;&gt;</code> is invariant (in <code>'s</code>).</p>
+</li>
+<li>
+<p>&quot;Thus&quot;, <code>Example&lt;T&gt;</code> is invariant (in <code>T</code>).</p>
+</li>
+</ol>
+</details>
+</li>
+</ul>
+</li>
+<li>
+<h4><a class="header" href="#composition-rules-when-you-know-that-a-t-generic-type-is-covariant" id="composition-rules-when-you-know-that-a-t-generic-type-is-covariant">Composition rules: when you know that a <code>&lt;T&gt;</code>-generic type is covariant:</a></h4>
+<p>For instance, consider <code>type Vec&lt;T&gt;</code> (or, more generally, any <code>type F&lt;T&gt;</code>).</p>
+<p>Now define some type depending on a lifetime parameter:</p>
+<pre><code class="language-rs">type T&lt;'lt&gt; = (i32, &amp;'lt str, bool); // FYI, this is covariant.
+</code></pre>
+<p>Then the resulting type, <code>F&lt;T&lt;'lt&gt;&gt;</code>, <em>i.e.</em>, <code>Vec&lt;(i32, &amp;'lt str, bool)&gt;</code>, will have the <em>same variance</em> as <code>T&lt;'lt&gt;</code> alone: <strong><code>&lt;T&gt;</code>-covariant types</strong> let the <code>&lt;'lt&gt;</code>-variance inside <code>T</code> <strong>pass through</strong>.</p>
+</li>
+</ul>
+<div class="footnote-definition" id="contra"><sup class="footnote-definition-label">1</sup>
+<p>when <em>also</em> non-contravariant.</p>
+</div>
+<div class="footnote-definition" id="composition"><sup class="footnote-definition-label">2</sup>
+<p>if <code>Cell&lt;T&gt;</code>, owned, were covariant in <code>T</code>, since <code>&amp;C</code> is covariant in <code>C</code>, it would mean that <code>&amp;Cell&lt;T&gt;</code>. Which can't be. So <code>Cell&lt;T&gt;</code> can't be covariant in <code>T</code>.</p>
+</div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="variance-intro.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="contravariance.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a rel="prev" href="variance-intro.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a rel="next" href="contravariance.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>

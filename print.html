@@ -1,0 +1,1805 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Rust lifetimes: from 'static to ecstatic</title>
+        
+        <meta name="robots" content="noindex" />
+        
+        
+
+
+        <!-- Custom HTML head -->
+        
+
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        
+        <link rel="icon" href="favicon.svg">
+        
+        
+        <link rel="shortcut icon" href="favicon.png">
+        
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        
+        <link rel="stylesheet" href="css/print.css" media="print">
+        
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        
+        <link rel="stylesheet" href="fonts/fonts.css">
+        
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (true || document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.</strong> What is a &quot;lifetime&quot;?</div></li><li class="chapter-item expanded affix "><li class="part-title">Core notions</li><li class="chapter-item expanded "><a href="pick-function.html"><strong aria-hidden="true">2.</strong> Case study: the pick() function</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Chapter 1</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Bar</div></li><li class="chapter-item expanded affix "><li class="part-title">Reference</li><li class="chapter-item expanded "><a href="lifetime-elision-rules.html"><strong aria-hidden="true">5.</strong> Lifetime elision rules</a></li><li class="chapter-item expanded "><a href="variance-intro.html"><strong aria-hidden="true">6.</strong> Variance</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="covariance.html"><strong aria-hidden="true">6.1.</strong> Covariance: when lifetimes can shrink</a></li><li class="chapter-item expanded "><a href="contravariance.html"><strong aria-hidden="true">6.2.</strong> Contravariance: when lifetimes can grow</a></li><li class="chapter-item expanded "><a href="variance-rules.html"><strong aria-hidden="true">6.3.</strong> Variance rules: a recap</a></li></ol></li><li class="chapter-item expanded "><a href="return-position-impl-trait.html"><strong aria-hidden="true">7.</strong> Lifetime semantics of -&gt; impl Trait</a></li><li class="chapter-item expanded "><a href="intersection-lifetime.html"><strong aria-hidden="true">8.</strong> Intersection lifetime</a></li><li class="chapter-item expanded "><a href="async-fn.html"><strong aria-hidden="true">9.</strong> async fn unsugaring / lifetime</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">Niche stuff</li><li class="chapter-item expanded "><div><strong aria-hidden="true">10.</strong> impl&lt;#[may_dangle] …&gt; Drop</div></li><li class="spacer"></li><li class="chapter-item expanded "><a href="appendix.html"><strong aria-hidden="true">11.</strong> Appendix</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="elided-lifetimes.html"><strong aria-hidden="true">11.1.</strong> Elided lifetimes / what is '_</a></li><li class="chapter-item expanded "><a href="usability.html"><strong aria-hidden="true">11.2.</strong> Trait + 'lifetime</a></li><li class="chapter-item expanded "><a href="subtyping-vs-coercions.html"><strong aria-hidden="true">11.3.</strong> Subtyping vs. Coercions</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><div>Closing thoughts</div></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        
+                    </div>
+
+                    <h1 class="menu-title">Rust lifetimes: from 'static to ecstatic</h1>
+
+                    <div class="right-buttons">
+                        
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        
+                        
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#rust-lifetimes-from-static-to-ecstatic" id="rust-lifetimes-from-static-to-ecstatic">Rust lifetimes: from <code>'static</code> to ecstatic.</a></h1>
+<p>Foo</p>
+<h1><a class="header" href="#case-study-the-pick-function" id="case-study-the-pick-function">Case study: the <code>pick()</code> function</a></h1>
+<p>In these series we'll be dealing with kind of the lifetime-equivalent of the trolley problem: <code>fn pick(&amp;str, &amp;str) -&gt; &amp;str</code> and friends.</p>
+<p>The body will always be along the lines of:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn pick(left: &amp;'_?? str, right: &amp;'_?? str)
+  -&gt; &amp;'_?? str
+{
+    if ::rand::random() {
+        left
+    } else {
+        right
+    }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>And the whole question will be about what should we put instead of each <code>'_??</code>.</p>
+<h4><a class="header" href="#lets-try-elision" id="lets-try-elision">Let's try elision?</a></h4>
+<p>For starters, let's try the typical works-way-more-often-than-it-deserves do-no-overcomplicate approach of using <a href="./elided-lifetimes.html">elided lifetimes</a> everywhere:</p>
+<pre><code class="language-rs">fn pick(left: &amp;'_ str, right: &amp;'_ str)
+  -&gt; &amp;'_ str
+</code></pre>
+<p>❌ this fails because <del>I wanted to make your life miserable</del> the <a href="./lifetime-elision-rules.html">lifetime elision rules</a> do not handle this situation: the inputs are so symmetric there is no clear &quot;borrowee&quot; argument.</p>
+<ul>
+<li><b>👉 <a href="./lifetime-elision-rules.html">lifetime elision rules</a> 👈</b></li>
+</ul>
+<h4><a class="header" href="#lets-try-repeating" id="lets-try-repeating">Let's try repeating</a></h4>
+<p>Now we could also try using distinct lifetime parameters for all three, but that will &quot;never&quot; work: we return a borrowing thing, so it has to be borrowing from at least one of the arguments, thus, <strong>in practice, a borrowing return type almost always has to involve a lifetime parameter that appears among one of the input types</strong>.</p>
+<p>Given how symmetric our code is, the sensible thing to do now would be to repeat all the lifetimes:</p>
+<pre><code class="language-rs">fn pick&lt;'ret&gt;(s1: &amp;'ret str, s2: &amp;'ret str)
+  -&gt; &amp;'ret str
+</code></pre>
+<p>And this does:</p>
+<ul>
+<li>compile ✅</li>
+<li>not result in unnecesarily restrictive API ✅</li>
+</ul>
+<p>Yay! 🥳</p>
+<ul>
+<li>
+<p>Aside: beginners often forget about the latter. Massaging a signature so that it becomes compatible with a given implementation often means we are making that function <em>less compatible</em> with certain call-site situations. While it can often be an acceptable loss, or a necessary one, other times that initial <code>cargo check</code> passing can hide that the API has become near-uncallable.</p>
+<p>That's why it is advisable to do this massaging of a function signature dance with an example usage / unit test next to it, so as to see the &quot;two sides&quot; of the caller/callee situation.</p>
+</li>
+</ul>
+<h3><a class="header" href="#congratulations-puzzle-solved-now-to-the-next-puzzle" id="congratulations-puzzle-solved-now-to-the-next-puzzle">Congratulations, puzzle solved. Now to the next puzzle!</a></h3>
+<p>Consider:</p>
+<pre><code class="language-rs">use ::std::sync::{Arc, Mutex};
+
+#[derive(Clone)]
+struct Person&lt;'name&gt; {
+    name: Arc&lt;Mutex&lt;&amp;'name str&gt;&gt;,
+}
+
+fn pick(p1: Person&lt;'_??&gt;, p2: Person&lt;'_??&gt;)
+  -&gt; &amp;'_?? str
+{
+    if ::rand::random() {
+        *p1.name.lock().unwrap()
+    } else {
+        *p2.name.lock().unwrap()
+    }
+}
+</code></pre>
+<p>and with the following test case:</p>
+<pre><code class="language-rs">#[test]
+fn test()
+{
+    let local = String::from(&quot;non-static&quot;);
+
+    let p1: Person&lt;'static&gt; = Person {
+        name: Arc::new(Mutex::new(&quot;static&quot;)),
+    };
+    let p2: Person&lt;'_&gt; = Person {
+        name: Arc::new(Mutex::new(&amp;local)),
+    };
+    let choice = pick(p1, p2);
+    dbg!(choice);
+}
+</code></pre>
+<p>Now, if you try the <code>'ret</code>-everywhere approach, the test function will not compile!</p>
+<pre><code class="language-rust ignore">error[E0597]: `local` does not live long enough
+  --&gt; src/lib.rs:49:35
+   |
+45 |     let p1: Person&lt;'static&gt; = Person {
+   |             --------------- type annotation requires that `local` be borrowed for `'static`
+...
+49 |         name: Arc::new(Mutex::new(&amp;local)),
+   |                                   ^^^^^^ borrowed value does not live long enough
+...
+53 | }
+   | - `local` dropped here while still borrowed
+</code></pre>
+<p>From the error message, we can guess that Rust is now convinced that our <code>p2: Person&lt;'_&gt;</code> is actually a <code>Person&lt;'static&gt;</code> (at which point it complains about <code>&amp;local</code> not being able to be borrowed for <code>'static</code> / <code>'forever</code> due to the impending doom that looms over the <code>local</code> variable).</p>
+<p>But why is that? Well, remember how the input of our <code>pick()</code> function was <em>repeating</em> the same <code>'ret</code> lifetime parameter for both function arguments. Well, that's exactly what repeating a lifetime parameter means: lifetime equality! If <code>p1</code> involves a <code>'static</code> lifetime, then it means that <code>p2</code>'s to-be-inferred lifetime has to be <code>'static</code>. Hence the error.</p>
+<ul>
+<li>
+<p>For the skeptical ones who may still think the lifetime of the return value may also be playing a role here (which it is not), and for the otherwise just curious people, here is an interesting thing: since having both function args involving the same lifetime parameter was enough to cause this restriction, we can actually get rid of the return type altogether (and thus the function body as well), and still have the same problem! 😄</p>
+<pre><code class="language-rs">fn pick&lt;'ret&gt;(_: Person&lt;'ret&gt;, _: Person&lt;'ret&gt;)
+// -&gt; no return type whatsoever
+{
+    // no meaningful body either 🙃
+}
+</code></pre>
+</li>
+</ul>
+<p>Now, at this point we may wonder about the initial <code>&amp;str</code> case, and see if it also suffers from this problem (had we been overly optimistic?)</p>
+<pre><code class="language-rs">fn pick&lt;'ret&gt;(s1: &amp;'ret str, s2: &amp;'ret str)
+  -&gt; &amp;'ret str
+{
+    &quot;…&quot;
+}
+
+#[test]
+fn test()
+{
+    let local = String::from(&quot;non-static&quot;);
+
+    let s1: &amp;'static str = &quot;static&quot;;
+    let s2: &amp;'_ str = &amp;local;
+    let choice = pick(s1, s2);
+    dbg!(choice);
+}
+</code></pre>
+<p>Aaand… it does compile!</p>
+<p>So, what has changed? Why/how does <code>&amp;'_ str</code> work but <code>Person&lt;'_&gt;</code> not?</p>
+<p>And the answer is that the <code>'_</code> in <code>&amp;'_ str</code> is &quot;allowed to shrink&quot;, which is not the case for <code>Person&lt;'_&gt;</code>.</p>
+<p>VARIANCE yadda yadda</p>
+<p>Indeed, the main change here is that <code>Person&lt;'_&gt;</code>, contrary to <code>&amp;'_ str</code>, does not allow its lifetime <code>'_</code> to &quot;shrink&quot;; which is something the <code>'ret</code>-everywhere approach was (probably unknowingly) relying on for the signature not to be restrictive. As</p>
+<pre><code class="language-rs">#[test]
+fn test()
+{
+    let local1 = String::from(&quot;Jane&quot;);
+    let local2 = String::from(&quot;Dove&quot;);
+
+    let p1: Person&lt;'_&gt; = Person {
+        name: Arc::new(Mutex::new(&amp;local1)),
+    };
+    let p2: Person&lt;'_&gt; = Person {
+        name: Arc::new(Mutex::new(&amp;local2)),
+    };
+    let choice = pick(p1.clone(), p2.clone());
+    dbg!(choice);
+    if ::rand::random() {
+        drop(p1); drop(local1);
+        drop(p2); drop(local2);
+    } else {
+        drop(p2); drop(local2);
+        drop(p1); drop(local1);
+    }
+}
+</code></pre>
+<h1><a class="header" href="#lifetime-elision" id="lifetime-elision">Lifetime elision</a></h1>
+<ul>
+<li>Prerequisite: <a href="./elided-lifetimes.html">elided lifetimes</a>.</li>
+</ul>
+<p>The lifetime elision rules are just there as <strong>convenience sugar</strong> for what could otherwise be written in a more verbose manner. As with any sugar that does not want to become overly terse and footgunny (cough, C++, cough), it only makes sense to have it <strong>in clear unambiguous cases</strong>.</p>
+<h2><a class="header" href="#lifetime-elision-in-function-bodies" id="lifetime-elision-in-function-bodies">Lifetime elision in function <em>bodies</em></a></h2>
+<p>Inside function <em>bodies</em>, that is, in a place where <em>type inference is allowed</em>, any elided lifetimes, implicit or not, will adjust to become whatever suits the code / whatever type-inference (with borrow-checking) dictates.</p>
+<h2><a class="header" href="#lifetime-elision-in-function-signatures" id="lifetime-elision-in-function-signatures">Lifetime elision in function signatures</a></h2>
+<p>By &quot;function signatures&quot; the following rules will apply to:</p>
+<ul>
+<li>
+<p>A function (item) signature:</p>
+<ul>
+<li>
+<pre><code class="language-rs">fn some_func(…) -&gt; …
+</code></pre>
+</li>
+</ul>
+</li>
+<li>
+<p>A function pointer type:</p>
+<ul>
+<li>
+<pre><code class="language-rs">type MyCb = fn(…) -&gt; …;
+//          ^^^^^^^^^^
+</code></pre>
+</li>
+</ul>
+</li>
+<li>
+<p>A <code>Fn{,Mut,Once}</code> trait bound:</p>
+<ul>
+<li>
+<pre><code class="language-rs">: Fn{,Mut,Once}(…) -&gt; …
+</code></pre>
+</li>
+<li>
+<pre><code class="language-rs">impl Fn{,Mut,Once}(…) -&gt; …
+</code></pre>
+</li>
+<li>
+<pre><code class="language-rs">dyn Fn{,Mut,Once}(…) -&gt; …
+</code></pre>
+</li>
+</ul>
+</li>
+</ul>
+<p>So, for all these, it turns out there are only two categories of &quot;clear unambiguous cases&quot;:</p>
+<ul>
+<li>
+<h3><a class="header" href="#when-lifetimes-play-no-meaningful-role" id="when-lifetimes-play-no-meaningful-role">When lifetimes play no meaningful role</a></h3>
+<p>That is, when the function returns nothing that borrows or depends on inputs. That is, <strong>when the return type has no &quot;lifetime&quot; parameters</strong>:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn eq(s1: &amp;'_ str, s2: &amp;'_ str)
+  -&gt; bool // &lt;- no &quot;lifetimes&quot;!
+<span class="boring">}
+</span></code></pre></pre>
+<p>Since there isn't really any room for lifetimes/borrows subtleties here, the unsugaring will be a maximally flexible one. Given that <strong>repeating a lifetime parameter name is a restriction</strong> (wherein two lifetime-generic types will need to be using equal &quot;lifetimes&quot; / matching regions), we get to be maximaly flexible / lenient / loose by <em>not</em> doing that: by introducing and using <em>distinct lifetime</em> parameters for each lifetime placeholder:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn eq&lt;'s1, 's2&gt;(s1: &amp;'s1 str, s2: &amp;'s2 str)
+  -&gt; bool
+<span class="boring">}
+</span></code></pre></pre>
+</li>
+<li>
+<h4><a class="header" href="#with-borrowing-getters" id="with-borrowing-getters">With borrowing <em>getters</em></a></h4>
+<p>With thus a clear unambiguous receiver / thing being borrowed:</p>
+<ul>
+<li>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn get(from_thing: &amp;'_ Thing) // same for `BorrowingThing&lt;'_&gt;`.
+  -&gt; &amp;'_ SomeField
+// replacing `&amp;'_` with `&amp;'_ mut` works too, of course.
+<span class="boring">}
+</span></code></pre></pre>
+<ol>
+<li>
+<p>In case of <strong>single &quot;lifetime&quot; placeholder among all the inputs</strong>;</p>
+</li>
+<li>
+<p>⇒ the borrow of <code>SomeField</code> necessarily stems from it;</p>
+</li>
+<li>
+<p>⇒ the output is to be &quot;connected&quot; to that input borrow by <strong>repeating the lifetime parameter</strong>.</p>
+<pre><code class="language-rs">fn get&lt;'ret&gt; (from_thing: &amp;'ret Thing)
+  -&gt; &amp;'ret SomeField
+</code></pre>
+</li>
+</ol>
+</li>
+<li>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn get(&amp;'_ self, key: &amp;'_ str)
+  -&gt; &amp;'_ Value
+<span class="boring">}
+</span></code></pre></pre>
+<ol>
+<li>
+<p><strong>A <code>&amp;[mut] self</code> <em>method receiver</em></strong>, despite the multiple lifetime placeholders among all the inputs, is &quot;favored&quot; and by default deemed to be the &quot;thing being borrowed&quot;.</p>
+</li>
+<li>
+<p>⇒ the borrow of the <code>Value</code> is to be &quot;connected&quot; to the <code>self</code> receiver; and <code>key</code>, on the other hand, is in a &quot;I'm not borrowed&quot; kind of situation.</p>
+</li>
+<li>
+<p>⇒ <code>key</code> will thus be using its own distinct &quot;dummy&quot; lifetime, whereas <code>self</code> and the returned <code>Value</code> will be using a single/repeated lifetime parameter.</p>
+<pre><code class="language-rs">fn get&lt;'ret, '_key&gt; (
+    self: &amp;'ret Self,
+    key: &amp;'_key str,
+) -&gt; &amp;'ret Value
+</code></pre>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+<p>Regarding <code>fn</code>-pointers and <code>Fn…</code> traits, the same rules apply, it's just that the named &quot;generic&quot; lifetime parameters for these things have to be introduced as &quot;nested generics&quot; / higher-rank lifetime parameters, using the <code>for&lt;&gt;</code> syntax.</p>
+<ul>
+<li>
+<p>In the <code>fn</code>-pointer case, we have:</p>
+<pre><code class="language-rs">let eq: fn(s1: &amp;'_ str, s2: &amp;'_ str) -&gt; bool;
+// stands for:
+let eq: for&lt;'s1, 's2&gt; fn(s1: &amp;'s1 str, s2: &amp;'s2 str) -&gt; bool;
+</code></pre>
+</li>
+<li>
+<p>In the <code>Fn…</code> case, we have:</p>
+<pre><code class="language-rs">impl/dyn Fn…(&amp;'_ str, &amp;'_ str) -&gt; bool&gt;
+// stands for
+impl/dyn for&lt;'s1, 's2&gt; Fn…(&amp;'s1 str, &amp;'s2 str) -&gt; bool
+</code></pre>
+</li>
+</ul>
+<p>So the rule of thumb is that &quot;lifetime holes in ouput connect with an unambiguous lifetime hole in input&quot;.</p>
+<ul>
+<li>
+<p>Technically, lifetime holes can connect with named lifetimes, but mixing up named lifetimes with elided lifetimes for them to &quot;connect&quot; is asking for trouble/confusing code: it ought to be linted against, and I hope it will end up denied in a future edition:</p>
+<pre><code class="language-rs">fn example&lt;'a&gt;(
+    a: impl 'a + AsRef&lt;str&gt;,
+    _debug_info: &amp;'static str,
+) -&gt; impl '_ + AsRef&lt;str&gt;
+{
+    a // Error, `a` does not live for `'static`
+}
+</code></pre>
+</li>
+</ul>
+<h2><a class="header" href="#lifetime-elision-in-dyn-traits" id="lifetime-elision-in-dyn-traits">Lifetime elision in <code>dyn Traits</code></a></h2>
+<p>Yep, yet another set of rules <em>distinct</em> from that of elision in function signatures, and this time, for little gain 😔</p>
+<ul>
+<li>tip: if you're the one writing the Rust code, avoid using these to reduce the cognitive burden of having to remember this extra set of rules!</li>
+</ul>
+<p>This is a special form of <em>implicit</em> elision: <code>dyn Traits</code><sup class="footnote-reference"><a href="#traits">1</a></sup>. Indeed, behind a <code>dyn</code> necessarily lurks a &quot;lifetime&quot;/region: that of owned-usability.</p>
+<pre><code class="language-rs">dyn Traits // + 'usability?
+</code></pre>
+<ul>
+<li>
+<p>⚠️ this is different than the explicitly elided lifetime, <code>'_</code>.</p>
+<p>That is, if you see a <code>dyn '_ + Trait</code> it will be the rules for <a href="lifetime-elision-rules.html#lifetime-elision-in-function-signatures">lifetime elision in function signatures</a> which shall govern what <code>'_</code> means:</p>
+<pre><code class="language-rs">fn a(it: Box&lt;dyn Send&gt;) // :impl Fn(Box&lt;dyn 'static + Send&gt;)
+
+fn b(it: Box&lt;dyn '_ + Send&gt;) // :impl for&lt;'u&gt; Fn(Box&lt;dyn 'u + Send&gt;)
+</code></pre>
+</li>
+</ul>
+<div class="footnote-definition" id="traits"><sup class="footnote-definition-label">1</sup>
+<p>When I write <code>Traits</code>, it is expected to cover situations such as <code>Trait1 + Trait2 + … + TraitN</code></p>
+</div>
+<h3><a class="header" href="#rules-of-thumb-for-elision-behind-dyn" id="rules-of-thumb-for-elision-behind-dyn">Rules of thumb for elision behind <code>dyn</code>:</a></h3>
+<ol>
+<li>
+<p>Inside of function bodies: <a href="lifetime-elision-rules.html#lifetime-elision-in-function-bodies">type inference</a>.</p>
+</li>
+<li>
+<p><code>&amp;'r [mut] dyn Traits = &amp;'r [mut] (dyn 'r + Traits)</code></p>
+<ul>
+<li>More generally, given <code>TyPath&lt;dyn Traits&gt;</code> where <code>TyPath&lt;T : 'bound&gt;</code>, we'll have <code>TyPath&lt;dyn Traits&gt; = TyPath&lt;dyn 'bound + Traits&gt;</code>.</li>
+</ul>
+</li>
+<li>
+<p>otherwise <code>dyn Traits = dyn 'static + Traits</code></p>
+</li>
+</ol>
+<h2><a class="header" href="#lifetime-elision-in-impl-traits" id="lifetime-elision-in-impl-traits">Lifetime elision in <code>impl Traits</code></a></h2>
+<h3><a class="header" href="#return-position---impl-traits-rpit" id="return-position---impl-traits-rpit">Return-position <code>-&gt; impl Traits</code> (RPIT)</a></h3>
+<p>Similarly to <code>dyn</code>, here, <code>-&gt; impl Traits ≠ -&gt; impl '_ + Traits</code>.</p>
+<p>But contrary to other properties/aspects of type erasure (where <code>dyn</code> and <code>-&gt; impl</code> can be quite similar), when dealing with lifetimes / captured generics, <code>impl Traits</code> happens to involve different semantics than those of <code>dyn Traits</code> ⚠️</p>
+<p>See <a href="return-position-impl-trait.html">the dedicated section</a> for more info.</p>
+<h3><a class="header" href="#argument-position-impl-traits-apit" id="argument-position-impl-traits-apit">Argument-position <code>impl Traits</code> (APIT)</a></h3>
+<ul>
+<li>(dubbed &quot;universal&quot; / caller-chosen)</li>
+</ul>
+<p><strong>Intuition</strong>: <code>impl Traits</code> will &quot;be the same as <code>impl '_ + Traits</code>&quot;, that is, introducing a new named generic lifetime parameter <code>&lt;'usability&gt;</code>, and then <code>impl 'usability + Traits</code>. This aligns with the idea of it being a &quot;universal&quot; <code>impl</code> type.</p>
+<details><summary>Rationale / actual semantics</summary>
+<p>These are kind of analogous to the following:</p>
+<p>For each <code>impl Traits</code> occurrence,</p>
+<ol>
+<li>introducing a new generic <em>type</em> parameter: <code>&lt;T&gt;</code></li>
+<li>bounded by the <code>Traits</code>: <code>where T : Traits</code></li>
+<li>and replacing the <code>impl Traits</code> with that parameter: <code>T</code>.</li>
+</ol>
+<pre><code class="language-rs">fn example(a: impl Send, b: impl Send)
+// is the &quot;same&quot; as:
+fn example&lt;A, B&gt;(a: A, b: B)
+where
+    A : Send,
+    B : Send,
+</code></pre>
+<ul>
+<li>the only difference will be that in the latter signature, callers will be able to use turbofish to specify the actual choices of <code>A</code> or <code>B</code>, whereas in the former case this will be left for type inference.</li>
+</ul>
+<hr />
+</details>
+<h1><a class="header" href="#variance" id="variance">Variance</a></h1>
+<!-- Around this area things can get a bit overly abstract; some people may start chanting some strange surely satanic incantation, which the most soulless text-to-speech machines out there decypher as this random dictionary word: variance.
+
+All that looks a bit too spooky, so, instead, for starters, let's go with eggs (🥚) and my beloved expiry dates. -->
+<h1><a class="header" href="#covariance-when-lifetimes-can-shrink" id="covariance-when-lifetimes-can-shrink">Covariance: when &quot;lifetimes&quot; can shrink</a></h1>
+<p>So, in some of the previous chapters we've seen that sometimes, there is a seemingly silly operation which can be done: that of shrinking or shortening expiry-dates / regions / &quot;lifetimes&quot;.</p>
+<p>For instance, let's consider the simplest lifetime-infected type: a borrow (to, say, some primitive type):</p>
+<pre><code class="language-rs">&amp;'borrow i32
+// but also:
+&amp;'borrow mut i32
+</code></pre>
+<p>When you got your hands on such a thing with a <code>'long</code> borrow, if you have to feed it to some API that wants a <code>'short</code> borrow instead, you can!</p>
+<pre><code class="language-rs">use ::core::convert::identity;
+
+fn demo&lt;'short, 'long : 'short&gt;(
+    r: &amp;'long mut i32,
+) -&gt; &amp;'short mut i32
+{
+    identity::&lt;&amp;'short mut i32&gt;(r) // ✅ OK!
+}
+</code></pre>
+<p>This is called a <em>subtyping relation</em>, and <a href="./subtyping-vs-coercions.html">you may observe that it is quite similar to an implicit coercion</a>.</p>
+<h3><a class="header" href="#is-shrinking-lifetimes-really-silly" id="is-shrinking-lifetimes-really-silly">Is shrinking lifetimes really &quot;silly&quot;?</a></h3>
+<details><summary>Click to see this section</summary>
+<p>I guess the main example would be when trying to put together references with distinct lifetimes into a single collection such as a <code>Vec</code>:</p>
+<pre><code class="language-rs">let local = String::from(&quot;…&quot;);
+let names: Vec&lt;&amp;str&gt; = vec![local.as_str(), &quot;static str&quot;];
+</code></pre>
+<p>Or, similarly, when type-unifying the output of two branches:</p>
+<pre><code class="language-rs">let storage: PathBuf;
+let file_to_read: &amp;Path =
+    match ::std::env::args_os().nth(1) {
+        | Some(s) =&gt; {
+            storage = s.into();
+            &amp;storage
+        },
+        // no `.to_owned()` whatsoever needed in this branch 💪
+        | None =&gt; &quot;default-file.toml&quot;.as_ref(),
+    }
+;
+</code></pre>
+<p>Finally, remember the <a href="pick-function.html"><code>pick()</code> function section</a>:</p>
+<pre><code class="language-rs">fn pick&lt;'ret&gt;(
+    left: &amp;'ret str,
+    right: &amp;'ret str,
+) -&gt; &amp;'ret str
+{
+    if … { left } else { right }
+}
+</code></pre>
+<p>Imagine trying to call <code>pick()</code> on a <code>&amp;String::from(&quot;…&quot;)</code> and a <code>&quot;static str&quot;</code>: with this signature, the borrows are constrained to have equal lifetimes! Lifetime shrinkage to the rescue 🙂</p>
+<p>Even in the more pedantic case of doing:</p>
+<pre><code class="language-rs">fn pick&lt;'ret, 'left, 'right&gt;(
+    left: &amp;'left str,
+    right: &amp;'right str,
+) -&gt; &amp;'ret str
+where
+    'left : 'ret,
+    'right : 'ret,
+{
+    // Here, we have `'left` and `'right` lifetimes in  branch;
+    // by covariance they get to shrink-unify down to some `'ret` intersection.
+    if … { left } else { right }
+}
+</code></pre>
+<p>notice how the <code>left</code> and <code>right</code> expressions in each branch of the <code>if</code>, respectively, <em>by allowing the lifetime within each to shrink</em>, managed to unify under a single shrunk lifetime, <code>'ret</code> (cough <a href="./intersection-lifetime.html">intersection</a> cough).</p>
+</details>
+<h2><a class="header" href="#covariance-a-definition" id="covariance-a-definition">Covariance, a definition</a></h2>
+<h3><a class="header" href="#covariant-lifetime-parameter" id="covariant-lifetime-parameter">Covariant lifetime parameter</a></h3>
+<p>So, this property of certain <strong>generic</strong> lifetime <strong>parameters</strong> being allowed to <strong>shrink</strong> is called <strong>covariance</strong> (in that lifetime parameter). While most <em>generic</em> types will happen to be <em>covariant</em>, there is an important exception / counter-example which we need to be aware of:</p>
+<ul>
+<li><input disabled="" type="checkbox" checked=""/>
+mutable…</li>
+<li><input disabled="" type="checkbox" checked=""/>
+…borrows!</li>
+</ul>
+<p>When both properties are &quot;ticked&quot;/met, then any lifetime <em>in the borrowee</em> is not (allowed) to be shrunk. We say of such a lifetime that it is <strong>non-covariant</strong>, or for short<sup class="footnote-reference"><a href="#contra">1</a></sup>, <strong>invariant</strong>.</p>
+<ul>
+<li>⚠️ notice how we're talking of the lifetimes that <em>may</em> occur within <em>the borrowee</em>: the lifetime of the borrow itself is not part of the invariant stuff.</li>
+</ul>
+<p>For instance, let's look at the type of that second argument of <code>{Display,Debug}::fmt</code> function:</p>
+<pre><code class="language-rs">&amp;'_ mut Formatter&lt;'_&gt;
+</code></pre>
+<p>Naming the lifetimes, we end up with:</p>
+<pre><code class="language-rs">// mutable borrow of
+//  vvvvvvvvvvvv
+    &amp;'borrow mut Formatter&lt;'fmt&gt;
+//               ^^^^^^^^^^^^^^^
+//              invariant borrowee
+
+
+
+//  can shrink
+//      =
+//  covariant
+//   vvvvvvv
+    &amp;'borrow mut Formatter&lt;'fmt&gt;
+//                         ^^^^
+//                     cannot shrink (nor grow)
+//                           =
+//                       invariant
+</code></pre>
+<p>A more typical albeit potentially visually confusing example is when the borrowee is itself a borrow:</p>
+<pre><code class="language-rs">&amp;'borrow mut (&amp;'fmt str)
+</code></pre>
+<p>In both cases, we have a <code>&amp;mut</code>-able <code>'borrow</code>, with thus a <em>covariant</em>/shrinkable lifetime, and behind such borrow, a thus <em>invariant</em> borrowee, resulting in <code>'fmt</code> not being allowed to shrink (nor grow).</p>
+<ul>
+<li>
+<h4><a class="header" href="#reminder-that-shared-mutability-exists" id="reminder-that-shared-mutability-exists">Reminder that shared mutability exists</a></h4>
+<p>Note that the <em>unique borrow</em>, <code>&amp;mut</code>, is not the only form of <em>mutable borrow</em>. Consider, for instance:</p>
+<pre><code class="language-rs">// Covariant in `'borrow`, invariant in `'fmt`.
+&amp;'borrow Cell&lt;&amp;'fmt str&gt;
+</code></pre>
+<ul>
+<li>
+<p>To gain a better intuition of this, I highly recommend that you open your mind to the following &quot;statement&quot;:</p>
+<pre><code class="language-rs">use ::core::cell::Cell as Mut;
+</code></pre>
+<ul>
+<li>(this is a legitimate thing to do since <code>Cell</code> does indeed let you mutate &quot;its interior&quot;)</li>
+</ul>
+<p>Thay way we end up with:</p>
+<pre><code class="language-rs">&amp;'borrow Mut&lt;&amp;'fmt str&gt;
+</code></pre>
+</li>
+</ul>
+<p>Finally, for technical reasons<sup class="footnote-reference"><a href="#composition">2</a></sup>, it turns out that the harmless <em>owned</em> shared mutability wrappers have to be declared invariant as well, despite the lack of borrows:</p>
+<pre><code class="language-rs">// Invariant too!
+Cell&lt;&amp;'_ str&gt;
+</code></pre>
+<p>In practice, you're more likely to run into this when dealing with things like a <code><strong>Mut</strong> ex</code>, a <code>RwLock&lt;_&gt;</code>, or any form of <code>channel</code> (at least the <code>Sender&lt;_&gt;</code> end):</p>
+<pre><code class="language-rs">//! Invariant
+Mut ex&lt;&amp;'_ str&gt;
+RwLock&lt;&amp;'_ str&gt;
+RefCell&lt;&amp;'_ str&gt;
+channel::Sender&lt;&amp;'_ str&gt;
+</code></pre>
+</li>
+</ul>
+<h3><a class="header" href="#covariant-type-parameter-and-composition-rules" id="covariant-type-parameter-and-composition-rules">Covariant type parameter and composition rules</a></h3>
+<p>It turns out that saying:</p>
+<ul>
+<li>given <code>&amp;'borrow /* Borrowee */</code>,</li>
+<li>then, each lifetime occurring in <code>Borrowee</code> (if any),</li>
+<li>is covariant;</li>
+</ul>
+<p>is kind of a mouthful to say/write/express. We thus define this conventional term, when this occurs: we'll talk of <code>&amp;'borrow T</code> being covariant in the <code>T</code> <em>type parameter</em>.</p>
+<p>So a not-so-formal definition of type-parameter-covariance would be:</p>
+<ul>
+<li>
+<h4><a class="header" href="#determining-whether-a-t-generic-type-is-covariant" id="determining-whether-a-t-generic-type-is-covariant">Determining whether a <code>&lt;T&gt;</code>-generic type is covariant</a></h4>
+<p>A practical rule (of thumb) for determining whether a <code>&lt;T&gt;</code>-generic type is covariant (in <code>T</code>) is to replace <code>T</code> by, say. <code>&amp;'s str</code>, and seeing the covariance (in <code>'s</code>) of the resulting type, since that will then be the covariance of the <code>&lt;T&gt;</code>-generic type.</p>
+<p>Examples:</p>
+<ul>
+<li><details><summary>What is the covariance of <code>type Example&lt;T&gt; = (T, i32);</code>?</summary>
+<ol>
+<li>
+<p>We replace <code>T</code> with <code>&amp;'s str</code>: what is the covariance of <code>(&amp;'s str, i32)</code>?</p>
+</li>
+<li>
+<p>We somehow know that <code>type ExampleT&lt;'s&gt; = (&amp;'s str, i32)</code> is covariant (in <code>'s</code>).</p>
+</li>
+<li>
+<p>&quot;Thus&quot;, <code>Example&lt;T&gt;</code> is covariant (in <code>T</code>).</p>
+</li>
+</ol>
+</details>
+</li>
+<li><details><summary>What is the covariance of <code>type Example&lt;T&gt; = Arc&lt;Cell&lt;T&gt;&gt;;</code>?</summary>
+<ol>
+<li>
+<p>We replace <code>T</code> with <code>&amp;'s str</code>: what is the covariance of <code>Arc&lt;Cell&lt;&amp;'s str&gt;&gt;</code>?</p>
+</li>
+<li>
+<p>We know that &quot;lifetimes behind a <code>Cell</code> are invariant&quot;, so we know that:</p>
+<p><code>type ExampleT&lt;'s&gt; = Arc&lt;Cell&lt;&amp;'s str&gt;&gt;</code> is invariant (in <code>'s</code>).</p>
+</li>
+<li>
+<p>&quot;Thus&quot;, <code>Example&lt;T&gt;</code> is invariant (in <code>T</code>).</p>
+</li>
+</ol>
+</details>
+</li>
+</ul>
+</li>
+<li>
+<h4><a class="header" href="#composition-rules-when-you-know-that-a-t-generic-type-is-covariant" id="composition-rules-when-you-know-that-a-t-generic-type-is-covariant">Composition rules: when you know that a <code>&lt;T&gt;</code>-generic type is covariant:</a></h4>
+<p>For instance, consider <code>type Vec&lt;T&gt;</code> (or, more generally, any <code>type F&lt;T&gt;</code>).</p>
+<p>Now define some type depending on a lifetime parameter:</p>
+<pre><code class="language-rs">type T&lt;'lt&gt; = (i32, &amp;'lt str, bool); // FYI, this is covariant.
+</code></pre>
+<p>Then the resulting type, <code>F&lt;T&lt;'lt&gt;&gt;</code>, <em>i.e.</em>, <code>Vec&lt;(i32, &amp;'lt str, bool)&gt;</code>, will have the <em>same variance</em> as <code>T&lt;'lt&gt;</code> alone: <strong><code>&lt;T&gt;</code>-covariant types</strong> let the <code>&lt;'lt&gt;</code>-variance inside <code>T</code> <strong>pass through</strong>.</p>
+</li>
+</ul>
+<div class="footnote-definition" id="contra"><sup class="footnote-definition-label">1</sup>
+<p>when <em>also</em> non-contravariant.</p>
+</div>
+<div class="footnote-definition" id="composition"><sup class="footnote-definition-label">2</sup>
+<p>if <code>Cell&lt;T&gt;</code>, owned, were covariant in <code>T</code>, since <code>&amp;C</code> is covariant in <code>C</code>, it would mean that <code>&amp;Cell&lt;T&gt;</code>. Which can't be. So <code>Cell&lt;T&gt;</code> can't be covariant in <code>T</code>.</p>
+</div>
+<p>Until now I've been talking of covariant / shrinkable lifetimes, or lack thereof (non-covariant / unshrinkable lifetimes).</p>
+<p>But it turns out that, as surprising as it may initially seem, there are some specific types for which the lifetime parameter, rather than shrink, can actually <em>grow</em>.</p>
+<h1><a class="header" href="#contravariance-when-lifetimes-can-grow" id="contravariance-when-lifetimes-can-grow">Contravariance: when lifetimes can grow</a></h1>
+<p>The only time a lifetime is allowed to grow is when it occurs in <strong>function argument position</strong>:</p>
+<ol>
+<li>
+<pre><code class="language-rs">type MyCb = fn(String);
+</code></pre>
+<p>which we have to make generic (reminder: variance is a property of generic types exclusively):</p>
+</li>
+<li>
+<pre><code class="language-rs">type MyGenericCb&lt;Arg&gt; = fn(Arg);
+// or:
+type MyLtGenericCb&lt;'lt&gt; = fn(&amp;'lt str);
+</code></pre>
+</li>
+</ol>
+<p>In this case, we'll say that <code>MyGenericCb&lt;Arg&gt;</code> is contravariant in <code>Arg</code> ⇔ Lifetimes occurring in <code>Arg</code> are allowed to grow ⇔ <code>'lt</code> is allowed to grow in <code>MyGenericCb&lt;&amp;'lt str&gt; = fn(&amp;'lt str) = MyLtGenericCb&lt;'lt&gt;</code> ⇔ <code>MyLtGenericCb</code> is contravariant.</p>
+<h3><a class="header" href="#growing-lifetimes" id="growing-lifetimes">Growing lifetimes???</a></h3>
+<p>To get an intuition as to why/how can this case of growing lifetimes be fine, consider:</p>
+<pre><code class="language-rs">type Egg&lt;'expiry&gt; = &amp;'expiry str; // or smth else covariant.
+struct Basket&lt;'expiry&gt;(Vec&lt;Egg&lt;'expiry&gt;&gt;);
+
+impl&lt;'expiry&gt; Basket&lt;'expiry&gt; {
+    fn stuff(
+        egg: Egg&lt;'expiry&gt;,
+    )
+    {
+        let mut basket: Self = Basket::&lt;'expiry&gt;(vec![egg]);
+        /* things with basket: Self */
+        drop(basket);
+    }
+}
+</code></pre>
+<p>Now, imagine wanting to work with a <code>Basket&lt;'next_week&gt;</code>, but only having an <code>Egg&lt;'next_month&gt;</code> to construct it:</p>
+<pre><code class="language-rs">fn is_this_fine&lt;'next_week, 'next_month : 'next_week&gt;(
+    egg: Egg&lt;'next_month&gt;,
+)
+{
+    let stuff: fn(Egg&lt;'next_week&gt;) = &lt;Basket&lt;'next_week&gt;&gt;::stuff;
+    stuff(egg) // &lt;- is this fine?
+}
+</code></pre>
+<p>We have two dual but equivalent points of view that make this right:</p>
+<ol>
+<li>
+<p><code>Egg&lt;'expiry&gt;</code> is covariant in <code>'expiry</code>, so we can shrink the lifetime inside <code>egg</code> when feeding it: &quot;we can shrink the lifetimes of covariant arguments right before they are fed to the function&quot;;</p>
+</li>
+<li>
+<p>at that point &quot;we can directly make the function itself take arguments with bigger lifetimes directly&quot;</p>
+<p>That is:</p>
+<ol>
+<li>
+<p>Given some <code>'expiry</code> lifetime in scope (<em>e.g.</em>, at the <code>impl</code> level):</p>
+<pre><code class="language-rs">fn stuff(
+    egg: Egg&lt;'expiry&gt;,
+)
+</code></pre>
+</li>
+<li>
+<p>We could always shim-wrap it:</p>
+<pre><code class="language-rs">fn cooler_stuff&lt;'actual_expiry&gt;(
+    egg: Egg&lt;'actual_expiry&gt;,
+)
+where
+    //             ≥
+    'actual_expiry : 'expiry,
+{
+    Self::stuff(
+        // since `Egg&lt;'actual_expiry&gt; ➘ Egg&lt;'expiry&gt;`.
+        egg // : Egg&lt;'expiry&gt;
+    )
+}
+</code></pre>
+</li>
+<li>
+<p>So at that point we may as well let the language do that (let <code>stuff</code> subtype <code>cooler_stuff</code>):</p>
+</li>
+</ol>
+<pre><code class="language-rs">// until_next_month ⊇   until_next_week
+//    'next_month   :        'next_week
+fn(Egg&lt;'next_week&gt;) ➘ fn(Egg&lt;'next_month&gt;)
+</code></pre>
+</li>
+</ol>
+<p>That is:</p>
+<pre><code class="language-rs">fn(Egg&lt;'short&gt;) ➘ fn(Egg&lt;'long&gt;)
+</code></pre>
+<h2><a class="header" href="#composition-rules-for-a-contravariant-type-generic-type" id="composition-rules-for-a-contravariant-type-generic-type">Composition rules for a contravariant type-generic type</a></h2>
+<p>The gist of it is that a type-generic contravariant type, such as:</p>
+<pre><code class="language-rs">type MyGenericCb&lt;Arg&gt; = fn(Arg);
+</code></pre>
+<p>will <strong>flip the variance</strong> of the stuff written as <code>Arg</code>.</p>
+<ul>
+<li>
+<p>For instance, consider:</p>
+<pre><code class="language-rs">type Example&lt;'lt&gt; = fn(bool, fn(u8, &amp;'lt str));
+</code></pre>
+<ul>
+<li>Don't try to imagine this type used in legitimate Rust or you may sprain your brain 🤕</li>
+</ul>
+<p>That is, <code>MyGenericCb&lt;Arg&lt;'lt&gt;&gt;</code> where <code>type Arg&lt;'lt&gt; = fn(u8, &amp;'lt str);</code>.</p>
+<ol>
+<li><code>type Arg&lt;'lt&gt; = fn(u8, &amp;'lt str);</code> is contravariant;</li>
+<li><code>type MyGenericCb&lt;Arg&gt; = fn(bool, Arg)</code> is contravariant, so it <strong>flips the variance</strong> of the inner <code>Arg&lt;'lt&gt;</code></li>
+<li>That is, <code>MyGenericCb&lt;Arg&lt;'lt&gt;&gt;</code> is &quot;contra-contravariant&quot;, <em>i.e.</em>,
+<pre><code class="language-rs">type Example&lt;'lt&gt; = fn(bool, fn(u8, &amp;'lt str))
+                  = MyGenericCb&lt;Arg&lt;'lt&gt;&gt;
+</code></pre>
+is covariant.</li>
+</ol>
+</li>
+</ul>
+<h1><a class="header" href="#variance-rules-a-recap" id="variance-rules-a-recap">Variance rules: a recap</a></h1>
+<h3><a class="header" href="#definition" id="definition">Definition</a></h3>
+<p>Variance is a property of generic types:</p>
+<ul>
+<li>
+<p>Variance for a lifetime-generic type (<em>e.g.</em>, <code>Formatter&lt;'_&gt;</code>) will determine whether <strong>lifetimes</strong> can:</p>
+<ul>
+<li>shrink (covariant),</li>
+<li>grow (contravariant),</li>
+<li>or neither (invariant).</li>
+</ul>
+</li>
+<li>
+<p>Variance for a type-generic type (<code>Vec&lt;T&gt;</code>) will determine:</p>
+<ul>
+<li>
+<p><strong>intuitively</strong>,
+if that type parameter (<code>T</code>) were replaced with a lifetime-generic type itself (<code>type T&lt;'r&gt; = &amp;'r str</code>), how the variance of that inner <code>T&lt;'r&gt;</code> type will propagate and affect the resulting variance of the composed type (<code>Vec&lt;T&lt;'r&gt;&gt;</code>).</p>
+<table><thead><tr><th align="center">×</th><th align="center"><code>T&lt;'lt&gt;</code><br>Co-variant</th><th align="center"><code>T&lt;'lt&gt;</code><br>Contra-variant</th><th align="center"><code>T&lt;'lt&gt;</code><br>In-variant</th></tr></thead><tbody>
+<tr><td align="center"><code>F&lt;T&gt;</code> <strong>cov</strong>ariant<br>=<br>&quot;passthrough&quot;</td><td align="center"><strong>Cov</strong>ariant<br><code>F&lt;T&lt;'lt&gt;&gt;</code></td><td align="center"><strong>Contra</strong>variant<br><code>F&lt;T&lt;'lt&gt;&gt;</code></td><td align="center"><strong>Inv</strong>ariant<br><code>F&lt;T&lt;'lt&gt;&gt;</code></td></tr>
+<tr><td align="center"><code>F&lt;T&gt;</code> <strong>contra</strong>variant<br><br>=<br>&quot;flips it around&quot;</td><td align="center"><strong>Contra</strong>variant<br><code>F&lt;T&lt;'lt&gt;&gt;</code></td><td align="center"><strong>Cov</strong>ariant<br><code>F&lt;T&lt;'lt&gt;&gt;</code></td><td align="center"><strong>Inv</strong>ariant<br><code>F&lt;T&lt;'lt&gt;&gt;</code></td></tr>
+<tr><td align="center"><code>F&lt;T&gt;</code> <strong>inv</strong>ariant</td><td align="center"><strong>Inv</strong>ariant<br><code>F&lt;T&lt;'lt&gt;&gt;</code></td><td align="center"><strong>Inv</strong>ariant<br><code>F&lt;T&lt;'lt&gt;&gt;</code></td><td align="center"><strong>Inv</strong>ariant<br><code>F&lt;T&lt;'lt&gt;&gt;</code></td></tr>
+</tbody></table>
+<p>Tip: if you see covariance as &quot;being positive&quot; (<code>+</code>), and contravariance as &quot;being negative&quot; (<code>-</code>), and invariance as &quot;being zero&quot; (<code>0</code>), these composition rules are the same as the sign multiplication rules!</p>
+<table><thead><tr><th align="center">×</th><th align="center">+1</th><th align="center">-1</th><th align="center">0</th></tr></thead><tbody>
+<tr><td align="center">+1</td><td align="center">+1</td><td align="center">-1</td><td align="center">0</td></tr>
+<tr><td align="center">-1</td><td align="center">-1</td><td align="center">+1</td><td align="center">0</td></tr>
+<tr><td align="center">0</td><td align="center">0</td><td align="center">0</td><td align="center">0</td></tr>
+</tbody></table>
+</li>
+<li>
+<p><strong>formally</strong>, how the subtyping relation among two choices for the type parameter results in some subtyping relation for the generic type.</p>
+<p>That is, if you have <code>T ➘ U</code> (<code>T</code> a subtype of <code>U</code>), and <code>type F&lt;X&gt;;</code></p>
+<ul>
+<li>if <code>F</code> is covariant, then <code>F&lt;T&gt; ➘ F&lt;U&gt;</code>;</li>
+<li>if <code>F</code> is contravariant, then<code>F&lt;U&gt; ➘ F&lt;T&gt;</code> (reversed!);</li>
+</ul>
+<p>You can have <code>T ➘ U</code> by:</p>
+<ul>
+<li>
+<p><strong>common case</strong>: having a variant <code>type T&lt;'lt&gt;</code>, and picking the lifetimes accordingly (this is the <strong>intuitively</strong> section just above);</p>
+</li>
+<li><details><summary><b>niche case</b>: having a higher-rank <code>fn</code> pointer type</summary>
+<p>and certain concrete choices of the inner generic lifetime:</p>
+<pre><code class="language-rs">//! Pseudo-code:
+//! using `fn&lt;'any&gt;(…)` instead of `for&lt;'any&gt; fn(…)`
+
+// From higher-order lifetime to a fixed choice:
+fn&lt;'any&gt;(&amp;'any str) ➘ fn(&amp;'fixed str)
+
+// From a covariant lifetime to a higher-order one:
+fn(fn(&amp;'static str)) ➘ fn&lt;'any&gt;(fn(&amp;'any str))
+</code></pre>
+<p>Interestingly enough, it does mean that if we pick:</p>
+<ul>
+<li>
+<pre><code class="language-rs">type T = for&lt;'any&gt; fn(fn(&amp;'any str));
+type U = fn(fn(&amp;'static str));
+</code></pre>
+</li>
+</ul>
+<p>Then:</p>
+<ul>
+<li>
+<p><code>T ≠ U</code>;</p>
+</li>
+<li>
+<p><code>T : 'static</code> and <code>U : 'static</code>;</p>
+</li>
+<li>
+<p><code>T ➘ U</code> by &quot;fixing the higher-order lifetime&quot;</p>
+<p>⚠️ A <code>: 'static</code> bound is not sufficient to prevent subtyping shenanigans form happening! ⚠️</p>
+</li>
+<li>
+<p><code>U ➘ T</code> by &quot;higher-ordering&quot; a covariant lifetime by &quot;induction from <code>'static</code>&quot;.</p>
+</li>
+<li>
+<p><a href="https://play.rust-lang.org/?version=stable&amp;mode=debug&amp;edition=2021&amp;gist=85bfd651072e498a469e0d40f4a0ad8c">Playground</a></p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3><a class="header" href="#main-variance-examples-to-keep-in-mind" id="main-variance-examples-to-keep-in-mind">Main variance examples to keep in mind</a></h3>
+<ul>
+<li>Mutable borrows and shared <strong>mutability</strong> wrappers are <strong>invariant</strong>.
+<ul>
+<li><code>Mutex&lt;T&gt;</code>, <code>Cell&lt;T&gt;</code>, <code>&amp;'cov Cell&lt;T&gt;</code>, <code>&amp;'cov mut T</code> are invariant (in <code>T</code>);</li>
+</ul>
+</li>
+<li>otherwise, generally, <strong>owned</strong> stuff or <strong>immutably-borrowed</strong> stuff can be <strong>covariant</strong>.
+<ul>
+<li><code>T</code>, <code>&amp;'_ T</code>, <code>Box&lt;T&gt;</code>, <code>Arc&lt;T&gt;</code>, are covariant.</li>
+</ul>
+</li>
+<li><code><b>fn</b>(CbArg)</code> is <strong>contravariant</strong> in <code>CbArg</code>.
+<ul>
+<li>But <code>fn(…) -&gt; Ret</code> is <strong>covariant</strong> in <code>Ret</code>!</li>
+</ul>
+</li>
+<li><code>impl Traits&lt;'lt&gt;</code> and <code>dyn Traits&lt;'lt&gt;</code> are <strong>invariant</strong>;
+<ul>
+<li>this includes the <code>Fn{,Mut,Once}</code> traits.</li>
+</ul>
+</li>
+<li><code>+ 'usability</code> is <strong>covariant</strong>:
+<ul>
+<li>Bonus: there is also a no-overhead-upcasting/reünsizing <em>coercion</em> possible from <code>&amp;mut (dyn 'big + Traits)</code> to <code>&amp;mut (dyn 'short + Traits)</code>, which to the untrained eye could appear as if <code>&amp;mut (dyn 'lt + Traits)</code> were covariant in <code>'lt</code>, <a href="https://play.rust-lang.org/?version=stable&amp;mode=debug&amp;edition=2021&amp;gist=7778dcd83cbfa56c8d7d89f3bd04bb3d">which it is not</a>.</li>
+</ul>
+</li>
+</ul>
+<h3><a class="header" href="#variance-of-product-types--structural-records--tuples" id="variance-of-product-types--structural-records--tuples">Variance of &quot;product types&quot; / <code>struct</code>ural records / tuples</a></h3>
+<p>The rule of thumb is: combine them <em>restrictively</em> / <em>non-covariance</em> and <em>non-contravariance</em> are infectious.</p>
+<p>By that I mean that you could think of variance as of marker traits:</p>
+<ul>
+<li><code>trait Covariant {}</code></li>
+<li><code>trait Contravariant {}</code></li>
+</ul>
+<pre><code class="language-rs">struct Example&lt;'lt&gt; {
+    x: &amp;'lt str,            //  Covariant + !Contravariant
+    y: Mutex&lt;&amp;'lt bool&gt;,    // !Covariant + !Contravariant
+}                           // !Covariant + !Contravariant = Invariant
+</code></pre>
+<p>For instance, in this <code>Example</code>, we have a non-contravariant field alongside an invariant, <em>i.e.</em>, neither-covariant-nor-contravariant field.</p>
+<p>Thus, the resulting <code>Example</code> can't be:</p>
+<ul>
+<li>contravariant, due to either field;</li>
+<li>covariant, due to the second field.</li>
+</ul>
+<p>So we have a neither-covariant-nor-contravariant type, <em>i.e.</em>, an invariant one.</p>
+<h4><a class="header" href="#" id=""></a></h4>
+<h1><a class="header" href="#lifetime-semantics-of---impl-trait" id="lifetime-semantics-of---impl-trait">Lifetime semantics of <code>-&gt; impl Trait</code></a></h1>
+<h3><a class="header" href="#--impl-trait-automagically-captures-generic-type-parameters-in-scope" id="--impl-trait-automagically-captures-generic-type-parameters-in-scope"><code>-&gt; impl Trait</code> automagically captures generic <em>type</em> parameters in scope</a></h3>
+<pre><code class="language-rs">fn foo&lt;'lt, T&gt;(lt: &amp;'lt (), ty: T)
+  -&gt; impl Sized
+</code></pre>
+<p>is sugar (and the only stable-Rust syntax at the moment) for:</p>
+<pre><code class="language-rs">#![feature(type_alias_impl_trait)]
+
+fn foo&lt;'lt, T&gt;(lt: &amp;'lt (), ty: T)
+  -&gt; __ImplTrait&lt;T&gt;
+// where the compiler has secretly generated:
+pub type __ImplTrait&lt;T&gt; = impl Sized; // no `'lt` generic param!
+</code></pre>
+<ul>
+<li>with <code>__ImplTrait&lt;T&gt;</code> being a compiler-generated <code>struct</code>, of sorts, which is generic over <code>&lt;T&gt;</code> and thus fully &quot;<em>infected by</em> <code>T</code>&quot;.</li>
+</ul>
+<p>That is, it has the semantics of:</p>
+<pre><code class="language-rs">//! Pseudo-code
+
+fn foo&lt;'lt, T&gt;(lt: &amp;'lt (), ty: T)
+  -&gt; impl Sized + InfectedBy&lt;T&gt; // no `+ InfectedBy&lt;'lt&gt;` !
+</code></pre>
+<blockquote>
+<p>What the helium is <code>InfectedBy&lt;T&gt;</code>?</p>
+</blockquote>
+<p>It's pseudo-code of mine to express the property that this <code>struct __ImplTrait&lt;T&gt;</code> would have: for any region <code>'r</code>, if the return type is usable within that region, then so must <code>T</code> itself be:</p>
+<pre><code class="language-rs">for&lt;'r&gt; (
+    impl Sized + InfectedBy&lt;T&gt; : 'r
+    ⇒
+    T : 'r
+)
+</code></pre>
+<p>Although the practical/intuitive aspect of it is rather the contra-position:</p>
+<pre><code class="language-rs">for&lt;'r&gt; (
+    T : !'r // let's assume this is syntax to say that `T : 'r` does not hold.
+    ⇒
+    impl Sized + InfectedBy&lt;T&gt; : !'r
+)
+</code></pre>
+<p>To illustrate, let's pick <code>T = &amp;'t str</code>, for instance:</p>
+<ul>
+<li>beyond <code>'t</code>, instances of type <code>T = &amp;'t str</code> are not allowed to be used.</li>
+<li>Then it means that beyond <code>'t</code>, the returned <code>-&gt; impl Sized</code> won't be allowed to be used either (<em>no matter the function body!</em>).</li>
+</ul>
+<p>These <code>-&gt; impl Sized + InfectedBy&lt;T&gt;</code> semantics are what allow the returned instance to contain <code>ty: T</code> inside it.</p>
+<p>But notice how, despite the <code>'lt</code> generic &quot;lifetime&quot; parameter in scope, there is no <code>+ InfectedBy&lt;'lt&gt;</code> in the unsugaring I've shown!</p>
+<ul>
+<li><details><summary>Example</summary>
+<p>The following works fine:</p>
+<pre><code class="language-rs">fn nothing_doër&lt;'lt&gt;(_: &amp;'lt String)
+  -&gt; impl Fn()
+{
+    || ()
+}
+
+let f = {
+    let local = String::from(&quot;…&quot;);
+    nothing_doër(&amp;local)
+};
+f() // ✅ OK
+</code></pre>
+<p>But the following does not:</p>
+<pre><code class="language-rs">fn nothing_doër&lt;T&gt;(_: T)
+  -&gt; impl Fn()
+{
+    || ()
+}
+
+let f = {
+    let local = String::from(&quot;…&quot;);
+    nothing_doër(&amp;local)
+};
+f() // ❌ Error, `local` does not live long enough!
+</code></pre>
+<p>😬</p>
+<hr />
+</details>
+</li>
+</ul>
+<h3><a class="header" href="#--impl-trait-does-not-implicitly-capture-generic-lifetime-parameters-in-scope" id="--impl-trait-does-not-implicitly-capture-generic-lifetime-parameters-in-scope"><code>-&gt; impl Trait</code> does not implicitly capture generic <em>&quot;lifetime&quot;</em> parameters in scope</a></h3>
+<p>This is not an oversight of mine (nor of the language), but rather a deliberate choice of the design of <code>-&gt; impl Trait</code>. See the associated RFC for more info about it, and the rationale behind that choice.</p>
+<p><strong>The fact there is no <code>+ InfectedBy&lt;'lt&gt;</code> means the returned instance won't be allowed to contain <code>lt: &amp;'lt …</code> inside it</strong>.</p>
+<pre><code class="language-rs">fn foo&lt;'lt, T&gt;(lt: &amp;'lt (), ty: T)
+  -&gt; impl Sized
+{
+    lt // ❌ Error, return type captures lifetime `'lt`
+       //    which does not appear in bounds.
+}
+</code></pre>
+<details><summary>Error message</summary>
+<pre><code class="language-rs">error[E0700]: hidden type for `impl Sized` captures lifetime that does not appear in bounds
+  --&gt; src/lib.rs:11:5
+   |
+8  | fn foo&lt;'lt, T&gt;(lt: &amp;'lt (), ty: T)
+   |        --- hidden type `&amp;'lt ()` captures the lifetime `'lt` as defined here
+...
+11 |     lt
+   |     ^^
+   |
+help: to declare that `impl Sized` captures `'lt`, you can add an explicit `'lt` lifetime bound
+   |
+9  |   -&gt; impl Sized + 'lt
+   |                 +++++
+</code></pre>
+<ul>
+<li>By the way that suggestion is not right, since it is not fully generalizable. See below for an example.</li>
+</ul>
+</details>
+<p>The workaround, currently, is to <strong>make the lifetime appear in bounds</strong>. If your trait in question does not give you room for that, then you can still achieve that by virtue of defining a helper trait for this, which happens to map quite nicely to my previous <code>InfectedBy&lt;…&gt;</code> pseudo-code.</p>
+<ol>
+<li>
+<p>Define a helper generic-over-a-lifetime trait:</p>
+<pre><code class="language-rs">/// Dummy empty marker trait.
+pub trait InfectedBy&lt;'__&gt; {}
+impl&lt;T : ?Sized&gt; InfectedBy&lt;'_&gt; for T {}
+</code></pre>
+</li>
+<li>
+<p>Add it (<code>+ InfectedBy&lt;…&gt;</code>) to the bounds of the returned <code>-&gt; impl Trait</code>:</p>
+<pre><code class="language-rs">//! Real rust code
+
+fn foo&lt;'lt, T&gt;(lt: &amp;'lt (), ty: T)
+  -&gt; impl Sized + InfectedBy&lt;'lt&gt;
+{
+    lt // ✅ OK
+}
+</code></pre>
+</li>
+</ol>
+<p>FWIW, you can imagine that this procedure is easily automatable through a macro:</p>
+<ul>
+<li><a href="https://docs.rs/fix_hidden_lifetime_bug"><code>#[fix_hidden_lifetime_bug]</code></a></li>
+</ul>
+<h3><a class="header" href="#about--lt-a-seemingly-shorter-but-not-always-applicable-workaround" id="about--lt-a-seemingly-shorter-but-not-always-applicable-workaround">About <code>+ 'lt</code>, a seemingly shorter, but not always applicable, workaround</a></h3>
+<p>In general, people will reach for a simple <code>+ 'lt</code> kind of bound (rather than the more cumbersome <code>+ InfectedBy&lt;'lt&gt;</code>).</p>
+<p>But if you have understood <a href="TODO">the meaning of <code>+ 'usability</code> correctly</a>, you should realize how this only works for simple cases:</p>
+<pre><code class="language-rs">/// ✅
+fn simple_case&lt;'lt&gt;(lt: &amp;'lt ())
+  -&gt; impl 'lt + Sized
+{
+    lt
+}
+
+/// ❌
+fn does_not_work&lt;'a, 'b&gt;(a: &amp;'a (), b: &amp;'b ())
+  -&gt; impl 'a + 'b + Sized
+{
+    (a, b)
+}
+</code></pre>
+<details><summary>Error message</summary>
+<pre><code class="language-rs">error: lifetime may not live long enough
+  --&gt; src/lib.rs:21:5
+   |
+18 | fn does_not_work&lt;'a, 'b&gt;(a: &amp;'a (), b: &amp;'b ())
+   |                  --  -- lifetime `'b` defined here
+   |                  |
+   |                  lifetime `'a` defined here
+...
+21 |     (a, b)
+   |     ^^^^^^ function was supposed to return data with lifetime `'b` but it is returning data with lifetime `'a`
+   |
+   = help: consider adding the following bound: `'a: 'b`
+
+error: lifetime may not live long enough
+  --&gt; src/lib.rs:21:5
+   |
+18 | fn does_not_work&lt;'a, 'b&gt;(a: &amp;'a (), b: &amp;'b ())
+   |                  --  -- lifetime `'b` defined here
+   |                  |
+   |                  lifetime `'a` defined here
+...
+21 |     (a, b)
+   |     ^^^^^^ function was supposed to return data with lifetime `'a` but it is returning data with lifetime `'b`
+   |
+   = help: consider adding the following bound: `'b: 'a`
+
+help: `'a` and `'b` must be the same: replace one with the other
+</code></pre>
+</details>
+<p>Indeed, <code>+ 'usability</code> means that it has to be usable (at least) within the whole <code>'usability</code> region!</p>
+<p>So if you write <code>+ 'a + 'b</code> it means that it will be usable within <code>'a</code> <em>and</em><sup class="footnote-reference"><a href="#and">1</a></sup> that it will be usable within <code>'b</code> as well. That is, (an instance of (type)) <code>impl 'a + 'b</code> has to be usable within the <em>union</em> of the regions <code>'a</code> and <code>'b</code>.</p>
+<div class="footnote-definition" id="and"><sup class="footnote-definition-label">1</sup>
+<p>that's exactly what <code>+</code> means in Rust: <code>+</code> adds capabilities, rather than restraining them, so there is no way <code>+ 'a + 'b</code> yields, <em>to the caller</em>, something more restrictive than just <code>+ 'a</code>.</p>
+</div>
+<p>But the <code>(a, b): (&amp;'a (), &amp;'b ())</code> value we are returning is meant to be unusable whenever:</p>
+<ul>
+<li>we leave the <code>'a</code> region (because of its <code>a</code> component),</li>
+<li>we leave the <code>'b</code> region (because of its <code>b</code> component).</li>
+</ul>
+<p>Which means <code>(a, b)</code> is only usable within the <em>intersection</em> of the <code>'a</code> and <code>'b</code> regions.</p>
+<ul>
+<li>
+<p>In expiry dates parlance, imagine a small bottle of milk, <code>a</code>, with an expiry date of one month, and another such bottle, <code>b</code>, but this time with an expiry date of one week. Say now that you mix the contents of both into a big bottle (this would be our <code>(a, b)</code> Rust item). Then the resulting mix should be drunk or thrown away within the week, lest the <code>b</code> part inside it go sour. That is, the resulting mix has an expiry date of <code>'b = min('a, 'b) = intersection('a, 'b)</code>.</p>
+<p>An <code>impl 'a + 'b</code> bottle of milk would, on the other hand, have meant that it would have been drinkable both before next week, and before next month, so effectively before next month (<code>'a = max('a, 'b) = union('a, 'b)</code>).</p>
+</li>
+</ul>
+<p>What we want to say is precisely that <code>(a, b)</code> is infected by both <code>'a</code> and <code>'b</code>, <em>i.e.</em>, that it is <code>InfectedBy&lt;'a&gt; + InfectedBy&lt;'b&gt;</code>:</p>
+<pre><code class="language-rs">fn example&lt;'a, 'b&gt;(
+    a: &amp;'a str,
+    b: &amp;'b str,
+) -&gt; impl Fn(bool) + InfectedBy&lt;'a&gt; + InfectedBy&lt;'b&gt;
+{
+    move /* (a, b) */ |choice| {
+        println!(&quot;{}&quot;, if choice { a } else { b })
+    }
+}
+</code></pre>
+<p>Granted, the previous function can be simplified:</p>
+<pre><code class="language-rs">fn example&lt;'intersection_of_a_and_b&gt;(
+    a: &amp;'intersection_of_a_and_b str,
+    b: &amp;'intersection_of_a_and_b str,
+) -&gt; impl 'intersection_of_a_and_b + Fn(bool)
+</code></pre>
+<ul>
+<li>since <code>'a</code> and <code>'b</code>, from the call-sites, would be able to <strong>shrink down</strong> to some <code>'intersection_of_a_and_b</code> region smaller than both, which would bring us back to a single-lifetime scenario, and thus to using the convenient <code>+ 'usability</code> syntax to get the returned existential to be infected by <code>'intersection_of_a_and_b</code>.</li>
+</ul>
+<p>But in more complex APIs, lifetimes may not be able to shrink, and a proper solution needs to be used if you are to make it work.</p>
+<p>For instance, no matter how hard you try, there is no simpler signature for the following function:</p>
+<pre><code class="language-rs">fn impl_&lt;'a, 'b&gt;(
+    a: Arc&lt;Mutex&lt;&amp;'a str&gt;&gt;,
+    b: Arc&lt;Mutex&lt;&amp;'b str&gt;&gt;,
+) -&gt; impl Fn(bool) + InfectedBy&lt;'a&gt; + InfectedBy&lt;'b&gt;
+{
+    move /* (a, b) */ |choice| {
+        println!(&quot;{}&quot;, if choice {
+            *a.lock().unwrap()
+        } else {
+            *b.lock().unwrap()
+        });
+    }
+}
+</code></pre>
+<h3><a class="header" href="#comparison-to-dyn-trait" id="comparison-to-dyn-trait">Comparison to <code>dyn Trait</code></a></h3>
+<p>Note that <code>dyn Trait</code> is <em>actual</em> type erasure, so if you manage to get your hands on the <code>'intersection</code> lifetime of all the captured lifetime and type parameters, then you can simply use <code>+ 'intersection</code> and Rust won't complain even when bigger unshrinkable lifetimes are part of the before-erasure type (in other words, type erasure is kind of able to shrink even otherwise unshrinkable lifetimes):</p>
+<pre><code class="language-rs">fn dyn_&lt;'i, 'a : 'i, 'b : 'i&gt;( // intersection('a, 'b) ⊇ 'i
+    a: Arc&lt;Mutex&lt;&amp;'a str&gt;&gt;,
+    b: Arc&lt;Mutex&lt;&amp;'b str&gt;&gt;,
+) -&gt; Box&lt;dyn 'i + Fn(bool)&gt;
+{
+    Box::new(move /* (a, b) */ |choice| {
+        println!(&quot;{}&quot;, if choice {
+            *a.lock().unwrap()
+        } else {
+            *b.lock().unwrap()
+        });
+    })
+}
+</code></pre>
+<ul>
+<li><a href="https://play.rust-lang.org/?version=stable&amp;mode=debug&amp;edition=2021&amp;gist=21498ea39cc6e85a074142c45c81e5d5">Playground</a></li>
+</ul>
+<p>The keen eye may have spotted the <a href="./intersection-lifetime.html">&quot;intersection lifetime&quot; pattern</a>. Otherwise, that newly introduced <code>'i</code> &quot;lifetime&quot; parameter will probably seem weird or confusing, in which case you may want to check out <a href="./intersection-lifetime.html">the dedicated section</a>.</p>
+<h1><a class="header" href="#intersection-lifetime" id="intersection-lifetime">Intersection lifetime</a></h1>
+<p>Imagine wanting to write:</p>
+<pre><code class="language-rs">//! Pseudo-code
+
+// this is what `#[async_trait]` wants to write, for instance.
+fn async_fn&lt;'a, 'b&gt;(
+    a: Arc&lt;Mutex&lt;&amp;'a str&gt;&gt;,
+    b: Arc&lt;Mutex&lt;&amp;'b str&gt;&gt;,
+) -&gt; BoxFuture&lt;'a ^ 'b, i32&gt;
+//                👆
+//           pseudo-code for `intersection('a, 'b)`
+</code></pre>
+<ul>
+<li>See <a href="./async-fn.html">the <code>async fn</code> unsugaring section</a> to know why.</li>
+</ul>
+<p>Alas, we can't write that. Indeed, <code>'a ^ 'b</code> does not exist in current Rust (to keep things &quot;simpler&quot; I guess). So we have to resort to quantifications and set theory to express this property.</p>
+<p>Behold, what peak &quot;simpler&quot; looks like:</p>
+<p>Let <code>A</code> and <code>B</code> be two sets, and <code>C</code>, their intersection: <code>C = A ∩ B</code></p>
+<p>Then, by definition, <code>A ⊇ C</code> and <code>B ⊇ C</code> (<code>C</code> is a subset of <code>A</code> and <code>C</code> is a subset of <code>B</code>).</p>
+<p>In fact, one can define the intersection with that property:</p>
+<ol>
+<li>
+<p>Consider some set <code>I</code> which is a subset of both <code>A</code> and <code>B</code>:</p>
+<p><code>I where A ⊇ I and B ⊇ I</code></p>
+<ul>
+<li>
+<p>visually, you can observe that <code>C ⊇ I</code>.</p>
+<img width="245" alt="venn diagram" src="https://user-images.githubusercontent.com/9920355/216795708-dbf79c91-50ea-4ff8-920d-47aec22bcd20.png">
+</li>
+</ul>
+</li>
+<li>
+<p>Now imagine the maximum of all possible <code>I</code> / &quot;try to make <code>I</code> bigger until you can't anymore&quot;: it's <code>C</code>!</p>
+</li>
+</ol>
+<pre><code>A ∩ B = C = max { I where A ⊇ I and B ⊇ I }
+</code></pre>
+<p>Back to Rust, this becomes:</p>
+<pre><code class="language-rs">'a ^ 'b = max { 'i where 'a : 'i, 'b : 'i }
+</code></pre>
+<p>And two point of views are possible:</p>
+<ul>
+<li>
+<p>either we realize we don't necessarily <em>need the max</em> exactly, that something Big Enough™ would suffice. For instance, in our <code>dyn</code> example, we can realize that a subset of the actual intersection can suffice in practice (the subset where we actually use the <code>dyn</code>).</p>
+<p>In this case, we can focus on this freely introduced <code>I</code> and all will be good.</p>
+</li>
+<li>
+<p>or we consider that a &quot;free&quot; extra generic parameter will be &quot;min-maxed&quot;, as needed, by Rust's borrow checker, which is constantly trying to make our code pass/compile.</p>
+<p>With this more magical but simpler point of view, we just introduce <code>I</code> and let Rust auto-maximize it as needed into the actual full intersection of <code>A</code> and <code>B</code>: <code>A ∩ B</code>.</p>
+</li>
+</ul>
+<pre><code class="language-rs">'a ^ 'b ≈ 'i where 'a : 'i, 'b : 'i
+</code></pre>
+<p>In both cases we end up with the following recipe for something like an intersection &quot;lifetime&quot;/region of regions <code>'r0</code>, …, <code>'rN</code>:</p>
+<h4><a class="header" href="#recipe-for-i--r0----rn" id="recipe-for-i--r0----rn">Recipe for <code>'i = 'r0 ^ … ^ 'rN</code></a></h4>
+<ol>
+<li>
+<p><code>&lt;'i&gt;</code> (let there be <code>I</code>)</p>
+<p>That is, introduce <code>'i</code> as a new/added &quot;free&quot; generic region parameter.</p>
+</li>
+<li>
+<p>Add</p>
+<pre><code class="language-rs">where
+    //  ⊇
+    'r0 : 'i,
+    'r1 : 'i,
+    …
+    'rN : 'i,
+</code></pre>
+<p>as <code>where</code> clauses so as to guarantee that <code>I</code> is one of the <code>{ I where R0 ⊇ I and … and RN ⊇ I }</code>.</p>
+</li>
+<li>
+<p>Use <code>'i</code> as if it were the desired intersection lifetime.</p>
+</li>
+<li>
+<p>Profit™</p>
+</li>
+</ol>
+<h4><a class="header" href="#example" id="example">Example</a></h4>
+<p>We had:</p>
+<pre><code class="language-rs">fn async_fn&lt;'a, 'b&gt;(
+    a: Arc&lt;Mutex&lt;&amp;'a str&gt;&gt;,
+    b: Arc&lt;Mutex&lt;&amp;'b str&gt;&gt;,
+) -&gt; BoxFuture&lt;'a ^ 'b, i32&gt;
+</code></pre>
+<p>We apply the recipe:</p>
+<ol>
+<li>
+<pre><code class="language-rs">//          👇
+fn async_fn&lt;'i, 'a, 'b&gt;(
+</code></pre>
+</li>
+<li>
+<pre><code class="language-rs">where
+    'a : 'i,
+    'b : 'i,
+</code></pre>
+</li>
+<li>
+<pre><code class="language-diff">- ) -&gt; BoxFuture&lt;'a ^ 'b, i32&gt;
++ ) -&gt; BoxFuture&lt;'i, i32&gt;
+</code></pre>
+</li>
+</ol>
+<p>That is:</p>
+<pre><code class="language-rs">//          👇 (1)
+fn async_fn&lt;'i, 'a, 'b&gt;(
+    a: Arc&lt;Mutex&lt;&amp;'a str&gt;&gt;,
+    b: Arc&lt;Mutex&lt;&amp;'b str&gt;&gt;,
+//             👇 (3)
+) -&gt; BoxFuture&lt;'i, i32&gt;
+where
+    'a : 'i, // 👈 (2)
+    'b : 'i, // 👈
+</code></pre>
+<ul>
+<li>(in the specific case of an <code>async fn</code> or <code>Future</code>, it may be more sensible to rename <code>'i</code> as <code>'fut</code>, or <code>'async_fn</code>, or something along those lines)</li>
+</ul>
+<h1><a class="header" href="#async-fn-unsugaring--lifetime" id="async-fn-unsugaring--lifetime"><code>async fn</code> unsugaring / lifetime</a></h1>
+<p>Consider, for instance:</p>
+<pre><code class="language-rs">trait Trait {
+    async fn async_fn&lt;'a, 'b&gt;(
+        a: Arc&lt;Mutex&lt;&amp;'a str&gt;&gt;,
+        b: Arc&lt;Mutex&lt;&amp;'b str&gt;&gt;,
+    ) -&gt; i32
+    {
+        dbg!(a.lock());
+        dbg!(b.lock());
+        42
+    }
+}
+</code></pre>
+<p>As of <code>1.66.1</code>, in Rust, this cannot be written directly, since</p>
+<pre><code class="language-rs">async fn f(…) -&gt; Ret
+</code></pre>
+<p>is sugar for</p>
+<pre><code class="language-rs">fn f(…) -&gt; impl Future&lt;Output = Ret&gt;
+</code></pre>
+<p>and <code>-&gt; impl Trait</code> cannot be used in traits yet.</p>
+<p>In the case of <code>Future</code>, which is a <code>dyn</code>-able trait, and which is <code>Pin&lt;Box&gt;</code>-transitive (<em>i.e.</em>, given <code>T : ?Sized</code>, if <code>T : Future</code> then <code>Pin&lt;Box&lt;T&gt;&gt; : Future&lt;Output = T::Output&gt;</code>), a workaround for this limitation is thus to write the function as <code>-&gt; Pin&lt;Box&lt;dyn Future…&gt;&gt;</code>.</p>
+<p>And since the process is:</p>
+<ul>
+<li><input disabled="" type="checkbox" checked=""/>
+tedious,</li>
+<li><input disabled="" type="checkbox" checked=""/>
+quite automatable,</li>
+<li><input disabled="" type="checkbox" checked=""/>
+and yet a bit subtle at times,</li>
+</ul>
+<p>we end up with —you guessed it— macros to do this for us, such as <a href="https://docs.rs/async-trait/0.1.64/async_trait/index.html"><code>#[async_trait]</code></a></p>
+<p>But how does <a href="https://docs.rs/async-trait/0.1.64/async_trait/index.html"><code>#[async_trait]</code></a> do it?</p>
+<ul>
+<li>
+<p>Answering this question is more important than just intellectual curiosity. Indeed, what if:</p>
+<ul>
+<li>we didn't have access to it;</li>
+<li>we had to deal with a distinct trait or use case not covered by it;</li>
+<li>or ran into <a href="https://play.rust-lang.org/?version=stable&amp;mode=debug&amp;edition=2021&amp;gist=529ab9fcde6ea24f149a494560ba8ff5"><code>#[async_trait]</code> bugs/limitations</a></li>
+</ul>
+</li>
+</ul>
+<p>To anticipate any of these cases, it's actually very sensible to learn to do what <a href="https://docs.rs/async-trait/0.1.64/async_trait/index.html"><code>#[async_trait]</code></a> does.</p>
+<ol>
+<li>
+<p>So we start off</p>
+<pre><code class="language-rs">trait Trait {
+    async fn async_fn&lt;'a, 'b&gt;(
+        a: Arc&lt;Mutex&lt;&amp;'a str&gt;&gt;,
+        b: Arc&lt;Mutex&lt;&amp;'b str&gt;&gt;,
+    ) -&gt; i32
+    {
+        …
+    }
+}
+</code></pre>
+</li>
+<li>
+<p>We replace <code>async fn … -&gt; Ret</code> with <code>fn … -&gt; impl Future&lt;Output = Ret&gt;</code>:</p>
+<pre><code class="language-rs">trait Trait {
+    fn async_fn&lt;'a, 'b&gt;(
+        a: Arc&lt;Mutex&lt;&amp;'a str&gt;&gt;,
+        b: Arc&lt;Mutex&lt;&amp;'b str&gt;&gt;,
+    ) -&gt; impl Future&lt;Output = i32&gt;
+            + InfectedBy&lt;'a&gt; + InfectedBy&lt;'b&gt;
+    {
+        async move {
+            let _captures = (&amp;a, &amp;b);
+            …
+        }
+    }
+}
+</code></pre>
+<ul>
+<li>See <a href="./return-position-impl-trait.html"><code>InfectedBy&lt;'_&gt;</code></a></li>
+</ul>
+</li>
+<li>
+<p>We <code>Pin&lt;Box&gt;</code>-wrap it:</p>
+<pre><code class="language-rs">trait Trait {
+    fn async_fn&lt;'a, 'b&gt;(
+        a: Arc&lt;Mutex&lt;&amp;'a str&gt;&gt;,
+        b: Arc&lt;Mutex&lt;&amp;'b str&gt;&gt;,
+    ) -&gt; Pin&lt;Box&lt;
+            impl Future&lt;Output = i32&gt;
+               + InfectedBy&lt;'a&gt; + InfectedBy&lt;'b&gt;
+        &gt;&gt;
+    {
+        Box::pin(async move {
+            let _captures = (&amp;a, &amp;b);
+            …
+        })
+    }
+}
+</code></pre>
+</li>
+<li>
+<p>We let it <code>dyn</code>:</p>
+<pre><code class="language-diff">) -&gt; Pin&lt;Box&lt;
+-       impl Future&lt;Output = i32&gt;
++        dyn Future&lt;Output = i32&gt;
+           + InfectedBy&lt;'a&gt; + InfectedBy&lt;'b&gt;
+    &gt;&gt;
+    {
+        Box::pin(async move {
+            let _captures = (&amp;a, &amp;b);
+            …
+        })
+    }
+}
+</code></pre>
+<ul>
+<li>We won't bother with <code>Send</code>-ness, here.</li>
+</ul>
+</li>
+<li>
+<p>We can't really use <a href="./return-position-impl-trait.html"><code>+ InfectedBy&lt;'_&gt;</code></a> with <code>dyn</code> (and don't really need to, as we'll see below), so we get rid of that too:</p>
+<pre><code class="language-diff">      dyn Future&lt;Output = i32&gt;
+-       + InfectedBy&lt;'a&gt; + InfectedBy&lt;'b&gt;
++       + '???
+</code></pre>
+</li>
+</ol>
+<p>At this point we've ended up with the following return type:</p>
+<pre><code class="language-rs">dyn '??? + Future&lt;Output = i32&gt;
+</code></pre>
+<p>And now the million dogecoin question is to know which lifetime we put here:</p>
+<ul>
+<li><code>dyn 'a + Future…</code> ?
+<ul>
+<li>May cover a region outside that of <code>'b</code>, so our future may dangle in there: ❌</li>
+</ul>
+</li>
+<li><code>dyn 'b + Future…</code> ?
+<ul>
+<li>symmetrical situation: ❌</li>
+</ul>
+</li>
+<li><code>dyn 'a + 'b + Future…</code> ?
+<ul>
+<li>Papering over the fact Rust doesn't let us write <code>dyn 'a + 'b + …</code> for some reason, this cannot be right, since this expresses a <code>'usability</code> that includes <code>'a</code> <em>and</em>  <code>'b</code>, and we've seen that each of these is already problematic, so a bigger usability will be just as problematic, if not more!</li>
+</ul>
+</li>
+</ul>
+<p>I've talked about all this in more detail over the <a href="./return-position-impl-trait.html">section about <code>-&gt; impl Trait</code></a>, which also happens to mention the answer.</p>
+<p>The gist of the answer is that:</p>
+<blockquote>
+<p>An <code>impl InfectedBy&lt;'a&gt; + InfectedBy&lt;'b&gt;</code> is only usable within the <strong>intersection of <code>'a</code> and <code>'b</code></strong>.</p>
+<pre><code class="language-rs">InfectedBy&lt;'a, 'b&gt; : 'a ^ 'b
+</code></pre>
+</blockquote>
+<ul>
+<li>Where <code>'a ^ 'b</code> is pseudo-code syntax to express <a href="./intersection-lifetime.html">the intersection</a> of <code>'a</code> and <code>'b</code>.</li>
+</ul>
+<p>In other words, our <code>'???</code> / the &quot;<code>'usability</code>&quot; of such an entity is <code>'a ^ 'b</code>.</p>
+<p>So we end up needing to write:</p>
+<pre><code class="language-rs">//! Pseudo-code
+
+fn async_fn&lt;'a, 'b&gt;(
+    a: Arc&lt;Mutex&lt;&amp;'a str&gt;&gt;,
+    b: Arc&lt;Mutex&lt;&amp;'b str&gt;&gt;,
+) -&gt; BoxFuture&lt;'a ^ 'b, i32&gt;
+</code></pre>
+<hr />
+<p>This, as the non-existing-in-Rust <code>'a ^ 'b</code> syntax suggests, is not real Rust code. See the <a href="./intersection-lifetime.html">intersection lifetime section</a> to know more about how the above ends up becoming:</p>
+<pre><code class="language-rs">//! Real-code!
+
+fn async_fn&lt;'fut, 'a, 'b&gt;(
+    a: Arc&lt;Mutex&lt;&amp;'a str&gt;&gt;,
+    b: Arc&lt;Mutex&lt;&amp;'b str&gt;&gt;,
+) -&gt; BoxFuture&lt;'fut, i32&gt;
+where
+    // ⊇
+    'a : 'fut, 'b : 'fut,
+ // 'a ^ 'b ⊇ 'fut
+</code></pre>
+<h1><a class="header" href="#appendix" id="appendix">Appendix</a></h1>
+<p>(you're not really supposed to keep navigating linearly through the book at this point; what follows is just a series of standalone articles that the main parts of the book will refer to)</p>
+<h1><a class="header" href="#lifetime-placeholders-or-elided-lifetimes" id="lifetime-placeholders-or-elided-lifetimes">&quot;Lifetime placeholders&quot;, or elided lifetimes</a></h1>
+<p>A lifetime can be elided:</p>
+<ul>
+<li>either implicitly, as is the case for <code>&amp;str</code> or <code>&amp;mut i32</code> (<strong>behind a <code>&amp;</code> always lurks a lifetime parameter</strong>);</li>
+<li>or explicitly, using the special <code>'_</code> syntax.</li>
+</ul>
+<p>Across this book, I personally (overly) use the latter syntax, so as to show, clearly, all the elided lifetime parameters.</p>
+<p>The result of an elided lifetime is thus <strong>a lifetime &quot;hole&quot;, or <em>lifetime placeholder</em></strong>, which will be the key thing to look at when thinking about <strong><a href="./lifetime-elision-rules.html">lifetime elision rules</a></strong>. For instance, all these types involve lifetime holes:</p>
+<ul>
+<li><code>&amp;i32</code>, <code>&amp;'_ i32</code>, <code>&amp;mut i32</code>, <code>&amp;'_ mut i32</code>,</li>
+<li><code>GenericTy&lt;'_&gt;</code><sup class="footnote-reference"><a href="#elided_lifetimes_in_paths">1</a></sup>
+<ul>
+<li><em>e.g.</em>, <code>Cow&lt;'_, str&gt;</code>, <code>Formatter&lt;'_&gt;</code>, <code>Context&lt;'_&gt;</code>, <code>BoxFuture&lt;'_, R&gt;</code>, <code>BorrowedFd&lt;'_&gt;</code></li>
+</ul>
+</li>
+<li><code>dyn '_ + Trait</code>, <code>dyn GenericTrait&lt;'_&gt;</code>, and ditto for <code>impl …</code>,
+<ul>
+<li><em>e.g.</em>, <code>Pin&lt;Box&lt;dyn '_ + Send + Future&lt;Output = R&gt;&gt;&gt;</code></li>
+</ul>
+</li>
+</ul>
+<div class="footnote-definition" id="elided_lifetimes_in_paths"><sup class="footnote-definition-label">1</sup>
+<p>Historically, it has been possible in Rust to use a lifetime-generic type without the <code>&lt;'_&gt;</code>. But this can be very confusing, which is why since the edition <code>2018_idioms</code>, there is a <code>elided_lifetimes_in_paths</code> lint which can be enabled (<em>e.g.</em>, set to <code>warn</code>), to catch these things. <strong>It is highly advisable to always set up this lint in any Rust project</strong>.</p>
+</div>
+<p>See the <a href="./lifetime-elision-rules.html">lifetime elision rules</a> for more info.</p>
+<h1><a class="header" href="#the-meaning-of--lifetime" id="the-meaning-of--lifetime">The meaning of + 'lifetime</a></h1>
+<h1><a class="header" href="#subtyping-vs-coercions" id="subtyping-vs-coercions">Subtyping vs. Coercions</a></h1>
+<ul>
+<li>
+<p>Example of subtyping:</p>
+<pre><code class="language-rs">fn demo&lt;'short&gt;()
+{
+    let s: &amp;'static str = &quot;…&quot;;
+    let s: &amp;'short str = s;
+}
+</code></pre>
+</li>
+<li>
+<p>Examples of coercions:</p>
+<pre><code class="language-rs">fn implicit_coercions(a: &amp;'_ mut Box&lt;[u8; 4]&gt;)
+{
+    // `&amp;mut` to `*mut` (&amp; friends)
+    let _: *mut _ = a /* as _ */;
+
+    // `&amp;mut` to `&amp;` (this is not subtyping!)
+    let b: &amp;Box&lt;[u8; 4]&gt; = a /* as _ */;
+
+    // `&amp;impl Deref` to `&amp;Deref::Output`
+    let c: &amp;[u8; 4] = b /* as _ */;
+
+    // Unsized coercions:
+    let _: &amp;[u8] = c /* as _ */;
+    let d: &amp;dyn SubTrait = c /* as _ */;
+    // `feature(trait_upcasting)`
+    let _: &amp;dyn SuperTrait = d /* as _ */;
+}
+// where:
+use ::core::any::Any as SuperTrait;
+trait SubTrait : SuperTrait {}
+</code></pre>
+</li>
+</ul>
+<p>There are two differences between subtyping and implicit coercions:</p>
+<ul>
+<li>
+<p>Coercions are allowed to perform (basic) <em>runtime operations</em> to perform the conversion. For instance, the coercion from <code>&amp;[u8; 4]</code> (thin data pointer to the beginning of 4 bytes) to <code>&amp;[u8]</code> (attaching a runtime <code>4: usize</code> &quot;field&quot; next to that thin data pointer to end up with a wide pointer).</p>
+<p>Whereas subtypining relations cannot, so as to have the following property:</p>
+</li>
+<li>
+<p>Subtyping relations can be nested/chained within arbitrarily deep complex types (provided that they be <a href="./covariance.html">covariant</a>), whereas coercions can't:</p>
+<pre><code class="language-rs">fn ok&lt;'short, 'long : 'short&gt;(v: Vec&lt;&amp;'long mut i32&gt;)
+  -&gt; Vec&lt;&amp;'short mut i32&gt;
+{
+    v // ✅ OK
+}
+
+fn nope(v: Vec&lt;&amp;mut i32&gt;)
+  -&gt; Vec&lt;&amp;i32&gt;
+{
+    v // ❌ Error
+}
+</code></pre>
+</li>
+</ul>
+<p>The latter point, I'd say, is really the critical difference from a theoretical perspective, since, for instance, given some <code>'short</code> lifetime, consider the following &quot;generic type&quot; / type constructor:</p>
+<pre><code class="language-rs">&lt;T&gt; =&gt; &amp;'short T
+</code></pre>
+<p>It is a rather simple type, which happens to be covariant in <code>T</code>.</p>
+<h3><a class="header" href="#covariance-using-long-x--short-x" id="covariance-using-long-x--short-x">Covariance (using <code>&amp;'long X ➘ &amp;'short X</code>)</a></h3>
+<p>Let's try with <code>type T = &amp;'long String;</code>, and trying to reach the <code>type T = &amp;'short String;</code>, since the former subtypes the latter:</p>
+<pre><code class="language-rs">&amp;'short (&amp;'long String) ➘ &amp;'short (&amp;'short String)
+// by covariance (in T) of `&amp;'short T`
+// since &amp;'long String ➘ &amp;'short String
+// since 'long ⊇ 'short
+</code></pre>
+<p>✅</p>
+<h3><a class="header" href="#coercion-using-the-long-mut-x--long-x-coercion" id="coercion-using-the-long-mut-x--long-x-coercion">Coercion? (using the <code>&amp;'long mut X ⇒ &amp;'long X</code> coercion)</a></h3>
+<p>Now let's try with <code>type T = &amp;'long mut String</code>, and trying to go to <code>type T = &amp;'long String;</code>, since we know the former can be coerced to the latter:</p>
+<pre><code class="language-rs">fn test&lt;'short, 'long : 'short&gt;(
+    r: &amp;'short (&amp;'long mut String),
+) -&gt; &amp;'short (&amp;'long String)
+{
+    r /* as _ */
+}
+</code></pre>
+<p>This errors! ❌</p>
+<details><summary>Error message</summary>
+<pre><code class="language-rs">error[E0308]: mismatched types
+ --&gt; src/lib.rs:5:5
+  |
+3 | ) -&gt; &amp;'short (&amp;'long String)
+  |      ----------------------- expected `&amp;'short &amp;'long String` because of return type
+4 | {
+5 |     r /* as _ */
+  |     ^ types differ in mutability
+  |
+  = note: expected reference `&amp;'short &amp;'long String`
+             found reference `&amp;'short &amp;'long mut String`
+</code></pre>
+</details>
+<p>Not only does it error, but there is actually no way to write this soundly.</p>
+<p>Indeed, such operation is unsound, <em>i.e.</em>, if it existed, it would make it possible, using it and non-<code>unsafe</code> Rust, to trigger UB/memory-corruption:</p>
+<ol>
+<li>
+<p>Given:</p>
+<pre><code class="language-rs">fn unsound&lt;'short, 'long : 'short&gt;(
+    r: &amp;'short (&amp;'long mut String),
+) -&gt; &amp;'short (&amp;'long String)
+{
+    unsafe { ::core::mem::transmute(r) }
+}
+</code></pre>
+</li>
+<li>
+<p>One can write:</p>
+<pre><code class="language-rs">/// Here is an example of what `unsound` lets us do:
+fn exploit_helper&lt;'long&gt;(
+    s: &amp;'long mut String,
+) -&gt; (
+        &amp;'long String,
+        &amp;'long mut String,
+    )
+{
+    // `s` cannot be used while `short` (or data
+    // derived from it) is being used.
+    let short: &amp;'_ &amp;'long mut String = &amp;s;
+    // the `'short` lifetime in `changed` is still
+    // derived from `short`, so `s` still can't be used
+    let changed: &amp;'_ &amp;'long String = unsound(short);
+    // But we can now dereference `changed`,
+    // since `&amp;'long String : Copy`,
+    // and the resulting `&amp;'long String` is no longer
+    // tied to `short`.
+    let r: &amp;'long String = *changed;
+    // That is, we can freely use `s` even if `r` is used too!
+    (r, s)
+}
+</code></pre>
+<p>Which means we'd have a (shared) reference <em>aliasing</em> with an <em>exclusive</em> one! UB</p>
+</li>
+<li>
+<p>For instance:</p>
+<pre><code class="language-rs">let s = &amp;mut String::from(&quot;Hey!&quot;);
+let (r, s) = exploit_helper(s);
+// Have `r` point to the heap-allocated utf-8 bytes the `String` owns.
+let r: &amp;str = &amp;*r;
+// And now let's deallocate those bytes:
+*s = String::new();
+// read deallocated memory:
+dbg!(r);
+</code></pre>
+<ul>
+<li><a href="https://play.rust-lang.org/?version=stable&amp;mode=debug&amp;edition=2021&amp;gist=bc7bce1298bf9f48214e7462a2f91151">Playground</a></li>
+</ul>
+<pre><code class="language-rs">error: Undefined Behavior: trying to retag from &lt;3360&gt; for SharedReadOnly permission at alloc1685[0x0], but that tag does not exist in the borrow stack for this location
+  --&gt; src/main.rs:19:5
+   |
+19 |     (r2, r)
+   |     ^^^^^^^
+   |     |
+   |     trying to retag from &lt;3360&gt; for SharedReadOnly permission at alloc1685[0x0], but that tag does not exist in the borrow stack for this location
+   |     this error occurs as part of retag at alloc1685[0x0..0x18]
+   |
+   = help: this indicates a potential bug in the program: it performed an invalid operation, but the Stacked Borrows rules it violated are still experimental
+   = help: see https://github.com/rust-lang/unsafe-code-guidelines/blob/master/wip/stacked-borrows.md for further information
+help: &lt;3360&gt; was created by a SharedReadOnly retag at offsets [0x0..0x18]
+  --&gt; src/main.rs:19:6
+   |
+19 |     (r2, r)
+   |      ^^
+help: &lt;3360&gt; was later invalidated at offsets [0x0..0x18] by a Unique retag
+  --&gt; src/main.rs:19:10
+   |
+19 |     (r2, r)
+   |          ^
+   = note: BACKTRACE (of the first span):
+   = note: inside `exploit_helper` at src/main.rs:19:5: 19:12
+note: inside `main`
+  --&gt; src/main.rs:25:18
+   |
+25 |     let (r, s) = exploit_helper(s);
+   |                  ^^^^^^^^^^^^^^^^^
+</code></pre>
+</li>
+</ol>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+        
+        <script type="text/javascript">
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+        
+        
+
+    </body>
+</html>

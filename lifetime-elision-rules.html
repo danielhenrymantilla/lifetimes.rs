@@ -1,0 +1,455 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Lifetime elision rules - Rust lifetimes: from 'static to ecstatic</title>
+        
+        
+
+
+        <!-- Custom HTML head -->
+        
+
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        
+        <link rel="icon" href="favicon.svg">
+        
+        
+        <link rel="shortcut icon" href="favicon.png">
+        
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        
+        <link rel="stylesheet" href="css/print.css" media="print">
+        
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        
+        <link rel="stylesheet" href="fonts/fonts.css">
+        
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (true || document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.</strong> What is a &quot;lifetime&quot;?</div></li><li class="chapter-item expanded affix "><li class="part-title">Core notions</li><li class="chapter-item expanded "><a href="pick-function.html"><strong aria-hidden="true">2.</strong> Case study: the pick() function</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Chapter 1</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Bar</div></li><li class="chapter-item expanded affix "><li class="part-title">Reference</li><li class="chapter-item expanded "><a href="lifetime-elision-rules.html" class="active"><strong aria-hidden="true">5.</strong> Lifetime elision rules</a></li><li class="chapter-item expanded "><a href="variance-intro.html"><strong aria-hidden="true">6.</strong> Variance</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="covariance.html"><strong aria-hidden="true">6.1.</strong> Covariance: when lifetimes can shrink</a></li><li class="chapter-item expanded "><a href="contravariance.html"><strong aria-hidden="true">6.2.</strong> Contravariance: when lifetimes can grow</a></li><li class="chapter-item expanded "><a href="variance-rules.html"><strong aria-hidden="true">6.3.</strong> Variance rules: a recap</a></li></ol></li><li class="chapter-item expanded "><a href="return-position-impl-trait.html"><strong aria-hidden="true">7.</strong> Lifetime semantics of -&gt; impl Trait</a></li><li class="chapter-item expanded "><a href="intersection-lifetime.html"><strong aria-hidden="true">8.</strong> Intersection lifetime</a></li><li class="chapter-item expanded "><a href="async-fn.html"><strong aria-hidden="true">9.</strong> async fn unsugaring / lifetime</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">Niche stuff</li><li class="chapter-item expanded "><div><strong aria-hidden="true">10.</strong> impl&lt;#[may_dangle] …&gt; Drop</div></li><li class="spacer"></li><li class="chapter-item expanded "><a href="appendix.html"><strong aria-hidden="true">11.</strong> Appendix</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="elided-lifetimes.html"><strong aria-hidden="true">11.1.</strong> Elided lifetimes / what is '_</a></li><li class="chapter-item expanded "><a href="usability.html"><strong aria-hidden="true">11.2.</strong> Trait + 'lifetime</a></li><li class="chapter-item expanded "><a href="subtyping-vs-coercions.html"><strong aria-hidden="true">11.3.</strong> Subtyping vs. Coercions</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><div>Closing thoughts</div></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        
+                    </div>
+
+                    <h1 class="menu-title">Rust lifetimes: from 'static to ecstatic</h1>
+
+                    <div class="right-buttons">
+                        
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        
+                        
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#lifetime-elision" id="lifetime-elision">Lifetime elision</a></h1>
+<ul>
+<li>Prerequisite: <a href="./elided-lifetimes.html">elided lifetimes</a>.</li>
+</ul>
+<p>The lifetime elision rules are just there as <strong>convenience sugar</strong> for what could otherwise be written in a more verbose manner. As with any sugar that does not want to become overly terse and footgunny (cough, C++, cough), it only makes sense to have it <strong>in clear unambiguous cases</strong>.</p>
+<h2><a class="header" href="#lifetime-elision-in-function-bodies" id="lifetime-elision-in-function-bodies">Lifetime elision in function <em>bodies</em></a></h2>
+<p>Inside function <em>bodies</em>, that is, in a place where <em>type inference is allowed</em>, any elided lifetimes, implicit or not, will adjust to become whatever suits the code / whatever type-inference (with borrow-checking) dictates.</p>
+<h2><a class="header" href="#lifetime-elision-in-function-signatures" id="lifetime-elision-in-function-signatures">Lifetime elision in function signatures</a></h2>
+<p>By &quot;function signatures&quot; the following rules will apply to:</p>
+<ul>
+<li>
+<p>A function (item) signature:</p>
+<ul>
+<li>
+<pre><code class="language-rs">fn some_func(…) -&gt; …
+</code></pre>
+</li>
+</ul>
+</li>
+<li>
+<p>A function pointer type:</p>
+<ul>
+<li>
+<pre><code class="language-rs">type MyCb = fn(…) -&gt; …;
+//          ^^^^^^^^^^
+</code></pre>
+</li>
+</ul>
+</li>
+<li>
+<p>A <code>Fn{,Mut,Once}</code> trait bound:</p>
+<ul>
+<li>
+<pre><code class="language-rs">: Fn{,Mut,Once}(…) -&gt; …
+</code></pre>
+</li>
+<li>
+<pre><code class="language-rs">impl Fn{,Mut,Once}(…) -&gt; …
+</code></pre>
+</li>
+<li>
+<pre><code class="language-rs">dyn Fn{,Mut,Once}(…) -&gt; …
+</code></pre>
+</li>
+</ul>
+</li>
+</ul>
+<p>So, for all these, it turns out there are only two categories of &quot;clear unambiguous cases&quot;:</p>
+<ul>
+<li>
+<h3><a class="header" href="#when-lifetimes-play-no-meaningful-role" id="when-lifetimes-play-no-meaningful-role">When lifetimes play no meaningful role</a></h3>
+<p>That is, when the function returns nothing that borrows or depends on inputs. That is, <strong>when the return type has no &quot;lifetime&quot; parameters</strong>:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn eq(s1: &amp;'_ str, s2: &amp;'_ str)
+  -&gt; bool // &lt;- no &quot;lifetimes&quot;!
+<span class="boring">}
+</span></code></pre></pre>
+<p>Since there isn't really any room for lifetimes/borrows subtleties here, the unsugaring will be a maximally flexible one. Given that <strong>repeating a lifetime parameter name is a restriction</strong> (wherein two lifetime-generic types will need to be using equal &quot;lifetimes&quot; / matching regions), we get to be maximaly flexible / lenient / loose by <em>not</em> doing that: by introducing and using <em>distinct lifetime</em> parameters for each lifetime placeholder:</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn eq&lt;'s1, 's2&gt;(s1: &amp;'s1 str, s2: &amp;'s2 str)
+  -&gt; bool
+<span class="boring">}
+</span></code></pre></pre>
+</li>
+<li>
+<h4><a class="header" href="#with-borrowing-getters" id="with-borrowing-getters">With borrowing <em>getters</em></a></h4>
+<p>With thus a clear unambiguous receiver / thing being borrowed:</p>
+<ul>
+<li>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn get(from_thing: &amp;'_ Thing) // same for `BorrowingThing&lt;'_&gt;`.
+  -&gt; &amp;'_ SomeField
+// replacing `&amp;'_` with `&amp;'_ mut` works too, of course.
+<span class="boring">}
+</span></code></pre></pre>
+<ol>
+<li>
+<p>In case of <strong>single &quot;lifetime&quot; placeholder among all the inputs</strong>;</p>
+</li>
+<li>
+<p>⇒ the borrow of <code>SomeField</code> necessarily stems from it;</p>
+</li>
+<li>
+<p>⇒ the output is to be &quot;connected&quot; to that input borrow by <strong>repeating the lifetime parameter</strong>.</p>
+<pre><code class="language-rs">fn get&lt;'ret&gt; (from_thing: &amp;'ret Thing)
+  -&gt; &amp;'ret SomeField
+</code></pre>
+</li>
+</ol>
+</li>
+<li>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn get(&amp;'_ self, key: &amp;'_ str)
+  -&gt; &amp;'_ Value
+<span class="boring">}
+</span></code></pre></pre>
+<ol>
+<li>
+<p><strong>A <code>&amp;[mut] self</code> <em>method receiver</em></strong>, despite the multiple lifetime placeholders among all the inputs, is &quot;favored&quot; and by default deemed to be the &quot;thing being borrowed&quot;.</p>
+</li>
+<li>
+<p>⇒ the borrow of the <code>Value</code> is to be &quot;connected&quot; to the <code>self</code> receiver; and <code>key</code>, on the other hand, is in a &quot;I'm not borrowed&quot; kind of situation.</p>
+</li>
+<li>
+<p>⇒ <code>key</code> will thus be using its own distinct &quot;dummy&quot; lifetime, whereas <code>self</code> and the returned <code>Value</code> will be using a single/repeated lifetime parameter.</p>
+<pre><code class="language-rs">fn get&lt;'ret, '_key&gt; (
+    self: &amp;'ret Self,
+    key: &amp;'_key str,
+) -&gt; &amp;'ret Value
+</code></pre>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+<p>Regarding <code>fn</code>-pointers and <code>Fn…</code> traits, the same rules apply, it's just that the named &quot;generic&quot; lifetime parameters for these things have to be introduced as &quot;nested generics&quot; / higher-rank lifetime parameters, using the <code>for&lt;&gt;</code> syntax.</p>
+<ul>
+<li>
+<p>In the <code>fn</code>-pointer case, we have:</p>
+<pre><code class="language-rs">let eq: fn(s1: &amp;'_ str, s2: &amp;'_ str) -&gt; bool;
+// stands for:
+let eq: for&lt;'s1, 's2&gt; fn(s1: &amp;'s1 str, s2: &amp;'s2 str) -&gt; bool;
+</code></pre>
+</li>
+<li>
+<p>In the <code>Fn…</code> case, we have:</p>
+<pre><code class="language-rs">impl/dyn Fn…(&amp;'_ str, &amp;'_ str) -&gt; bool&gt;
+// stands for
+impl/dyn for&lt;'s1, 's2&gt; Fn…(&amp;'s1 str, &amp;'s2 str) -&gt; bool
+</code></pre>
+</li>
+</ul>
+<p>So the rule of thumb is that &quot;lifetime holes in ouput connect with an unambiguous lifetime hole in input&quot;.</p>
+<ul>
+<li>
+<p>Technically, lifetime holes can connect with named lifetimes, but mixing up named lifetimes with elided lifetimes for them to &quot;connect&quot; is asking for trouble/confusing code: it ought to be linted against, and I hope it will end up denied in a future edition:</p>
+<pre><code class="language-rs">fn example&lt;'a&gt;(
+    a: impl 'a + AsRef&lt;str&gt;,
+    _debug_info: &amp;'static str,
+) -&gt; impl '_ + AsRef&lt;str&gt;
+{
+    a // Error, `a` does not live for `'static`
+}
+</code></pre>
+</li>
+</ul>
+<h2><a class="header" href="#lifetime-elision-in-dyn-traits" id="lifetime-elision-in-dyn-traits">Lifetime elision in <code>dyn Traits</code></a></h2>
+<p>Yep, yet another set of rules <em>distinct</em> from that of elision in function signatures, and this time, for little gain 😔</p>
+<ul>
+<li>tip: if you're the one writing the Rust code, avoid using these to reduce the cognitive burden of having to remember this extra set of rules!</li>
+</ul>
+<p>This is a special form of <em>implicit</em> elision: <code>dyn Traits</code><sup class="footnote-reference"><a href="#traits">1</a></sup>. Indeed, behind a <code>dyn</code> necessarily lurks a &quot;lifetime&quot;/region: that of owned-usability.</p>
+<pre><code class="language-rs">dyn Traits // + 'usability?
+</code></pre>
+<ul>
+<li>
+<p>⚠️ this is different than the explicitly elided lifetime, <code>'_</code>.</p>
+<p>That is, if you see a <code>dyn '_ + Trait</code> it will be the rules for <a href="#lifetime-elision-in-function-signatures">lifetime elision in function signatures</a> which shall govern what <code>'_</code> means:</p>
+<pre><code class="language-rs">fn a(it: Box&lt;dyn Send&gt;) // :impl Fn(Box&lt;dyn 'static + Send&gt;)
+
+fn b(it: Box&lt;dyn '_ + Send&gt;) // :impl for&lt;'u&gt; Fn(Box&lt;dyn 'u + Send&gt;)
+</code></pre>
+</li>
+</ul>
+<div class="footnote-definition" id="traits"><sup class="footnote-definition-label">1</sup>
+<p>When I write <code>Traits</code>, it is expected to cover situations such as <code>Trait1 + Trait2 + … + TraitN</code></p>
+</div>
+<h3><a class="header" href="#rules-of-thumb-for-elision-behind-dyn" id="rules-of-thumb-for-elision-behind-dyn">Rules of thumb for elision behind <code>dyn</code>:</a></h3>
+<ol>
+<li>
+<p>Inside of function bodies: <a href="#lifetime-elision-in-function-bodies">type inference</a>.</p>
+</li>
+<li>
+<p><code>&amp;'r [mut] dyn Traits = &amp;'r [mut] (dyn 'r + Traits)</code></p>
+<ul>
+<li>More generally, given <code>TyPath&lt;dyn Traits&gt;</code> where <code>TyPath&lt;T : 'bound&gt;</code>, we'll have <code>TyPath&lt;dyn Traits&gt; = TyPath&lt;dyn 'bound + Traits&gt;</code>.</li>
+</ul>
+</li>
+<li>
+<p>otherwise <code>dyn Traits = dyn 'static + Traits</code></p>
+</li>
+</ol>
+<h2><a class="header" href="#lifetime-elision-in-impl-traits" id="lifetime-elision-in-impl-traits">Lifetime elision in <code>impl Traits</code></a></h2>
+<h3><a class="header" href="#return-position---impl-traits-rpit" id="return-position---impl-traits-rpit">Return-position <code>-&gt; impl Traits</code> (RPIT)</a></h3>
+<p>Similarly to <code>dyn</code>, here, <code>-&gt; impl Traits ≠ -&gt; impl '_ + Traits</code>.</p>
+<p>But contrary to other properties/aspects of type erasure (where <code>dyn</code> and <code>-&gt; impl</code> can be quite similar), when dealing with lifetimes / captured generics, <code>impl Traits</code> happens to involve different semantics than those of <code>dyn Traits</code> ⚠️</p>
+<p>See <a href="return-position-impl-trait.html">the dedicated section</a> for more info.</p>
+<h3><a class="header" href="#argument-position-impl-traits-apit" id="argument-position-impl-traits-apit">Argument-position <code>impl Traits</code> (APIT)</a></h3>
+<ul>
+<li>(dubbed &quot;universal&quot; / caller-chosen)</li>
+</ul>
+<p><strong>Intuition</strong>: <code>impl Traits</code> will &quot;be the same as <code>impl '_ + Traits</code>&quot;, that is, introducing a new named generic lifetime parameter <code>&lt;'usability&gt;</code>, and then <code>impl 'usability + Traits</code>. This aligns with the idea of it being a &quot;universal&quot; <code>impl</code> type.</p>
+<details><summary>Rationale / actual semantics</summary>
+<p>These are kind of analogous to the following:</p>
+<p>For each <code>impl Traits</code> occurrence,</p>
+<ol>
+<li>introducing a new generic <em>type</em> parameter: <code>&lt;T&gt;</code></li>
+<li>bounded by the <code>Traits</code>: <code>where T : Traits</code></li>
+<li>and replacing the <code>impl Traits</code> with that parameter: <code>T</code>.</li>
+</ol>
+<pre><code class="language-rs">fn example(a: impl Send, b: impl Send)
+// is the &quot;same&quot; as:
+fn example&lt;A, B&gt;(a: A, b: B)
+where
+    A : Send,
+    B : Send,
+</code></pre>
+<ul>
+<li>the only difference will be that in the latter signature, callers will be able to use turbofish to specify the actual choices of <code>A</code> or <code>B</code>, whereas in the former case this will be left for type inference.</li>
+</ul>
+<hr />
+</details>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="pick-function.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="variance-intro.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a rel="prev" href="pick-function.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a rel="next" href="variance-intro.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>

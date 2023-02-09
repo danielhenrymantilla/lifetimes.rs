@@ -1,0 +1,405 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Subtyping vs. Coercions - Rust lifetimes: from 'static to ecstatic</title>
+        
+        
+
+
+        <!-- Custom HTML head -->
+        
+
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        
+        <link rel="icon" href="favicon.svg">
+        
+        
+        <link rel="shortcut icon" href="favicon.png">
+        
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        
+        <link rel="stylesheet" href="css/print.css" media="print">
+        
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        
+        <link rel="stylesheet" href="fonts/fonts.css">
+        
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (true || document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.</strong> What is a &quot;lifetime&quot;?</div></li><li class="chapter-item expanded affix "><li class="part-title">Core notions</li><li class="chapter-item expanded "><a href="pick-function.html"><strong aria-hidden="true">2.</strong> Case study: the pick() function</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Chapter 1</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Bar</div></li><li class="chapter-item expanded affix "><li class="part-title">Reference</li><li class="chapter-item expanded "><a href="lifetime-elision-rules.html"><strong aria-hidden="true">5.</strong> Lifetime elision rules</a></li><li class="chapter-item expanded "><a href="variance-intro.html"><strong aria-hidden="true">6.</strong> Variance</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="covariance.html"><strong aria-hidden="true">6.1.</strong> Covariance: when lifetimes can shrink</a></li><li class="chapter-item expanded "><a href="contravariance.html"><strong aria-hidden="true">6.2.</strong> Contravariance: when lifetimes can grow</a></li><li class="chapter-item expanded "><a href="variance-rules.html"><strong aria-hidden="true">6.3.</strong> Variance rules: a recap</a></li></ol></li><li class="chapter-item expanded "><a href="return-position-impl-trait.html"><strong aria-hidden="true">7.</strong> Lifetime semantics of -&gt; impl Trait</a></li><li class="chapter-item expanded "><a href="intersection-lifetime.html"><strong aria-hidden="true">8.</strong> Intersection lifetime</a></li><li class="chapter-item expanded "><a href="async-fn.html"><strong aria-hidden="true">9.</strong> async fn unsugaring / lifetime</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">Niche stuff</li><li class="chapter-item expanded "><div><strong aria-hidden="true">10.</strong> impl&lt;#[may_dangle] …&gt; Drop</div></li><li class="spacer"></li><li class="chapter-item expanded "><a href="appendix.html"><strong aria-hidden="true">11.</strong> Appendix</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="elided-lifetimes.html"><strong aria-hidden="true">11.1.</strong> Elided lifetimes / what is '_</a></li><li class="chapter-item expanded "><a href="usability.html"><strong aria-hidden="true">11.2.</strong> Trait + 'lifetime</a></li><li class="chapter-item expanded "><a href="subtyping-vs-coercions.html" class="active"><strong aria-hidden="true">11.3.</strong> Subtyping vs. Coercions</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><div>Closing thoughts</div></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        
+                    </div>
+
+                    <h1 class="menu-title">Rust lifetimes: from 'static to ecstatic</h1>
+
+                    <div class="right-buttons">
+                        
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        
+                        
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#subtyping-vs-coercions" id="subtyping-vs-coercions">Subtyping vs. Coercions</a></h1>
+<ul>
+<li>
+<p>Example of subtyping:</p>
+<pre><code class="language-rs">fn demo&lt;'short&gt;()
+{
+    let s: &amp;'static str = &quot;…&quot;;
+    let s: &amp;'short str = s;
+}
+</code></pre>
+</li>
+<li>
+<p>Examples of coercions:</p>
+<pre><code class="language-rs">fn implicit_coercions(a: &amp;'_ mut Box&lt;[u8; 4]&gt;)
+{
+    // `&amp;mut` to `*mut` (&amp; friends)
+    let _: *mut _ = a /* as _ */;
+
+    // `&amp;mut` to `&amp;` (this is not subtyping!)
+    let b: &amp;Box&lt;[u8; 4]&gt; = a /* as _ */;
+
+    // `&amp;impl Deref` to `&amp;Deref::Output`
+    let c: &amp;[u8; 4] = b /* as _ */;
+
+    // Unsized coercions:
+    let _: &amp;[u8] = c /* as _ */;
+    let d: &amp;dyn SubTrait = c /* as _ */;
+    // `feature(trait_upcasting)`
+    let _: &amp;dyn SuperTrait = d /* as _ */;
+}
+// where:
+use ::core::any::Any as SuperTrait;
+trait SubTrait : SuperTrait {}
+</code></pre>
+</li>
+</ul>
+<p>There are two differences between subtyping and implicit coercions:</p>
+<ul>
+<li>
+<p>Coercions are allowed to perform (basic) <em>runtime operations</em> to perform the conversion. For instance, the coercion from <code>&amp;[u8; 4]</code> (thin data pointer to the beginning of 4 bytes) to <code>&amp;[u8]</code> (attaching a runtime <code>4: usize</code> &quot;field&quot; next to that thin data pointer to end up with a wide pointer).</p>
+<p>Whereas subtypining relations cannot, so as to have the following property:</p>
+</li>
+<li>
+<p>Subtyping relations can be nested/chained within arbitrarily deep complex types (provided that they be <a href="./covariance.html">covariant</a>), whereas coercions can't:</p>
+<pre><code class="language-rs">fn ok&lt;'short, 'long : 'short&gt;(v: Vec&lt;&amp;'long mut i32&gt;)
+  -&gt; Vec&lt;&amp;'short mut i32&gt;
+{
+    v // ✅ OK
+}
+
+fn nope(v: Vec&lt;&amp;mut i32&gt;)
+  -&gt; Vec&lt;&amp;i32&gt;
+{
+    v // ❌ Error
+}
+</code></pre>
+</li>
+</ul>
+<p>The latter point, I'd say, is really the critical difference from a theoretical perspective, since, for instance, given some <code>'short</code> lifetime, consider the following &quot;generic type&quot; / type constructor:</p>
+<pre><code class="language-rs">&lt;T&gt; =&gt; &amp;'short T
+</code></pre>
+<p>It is a rather simple type, which happens to be covariant in <code>T</code>.</p>
+<h3><a class="header" href="#covariance-using-long-x--short-x" id="covariance-using-long-x--short-x">Covariance (using <code>&amp;'long X ➘ &amp;'short X</code>)</a></h3>
+<p>Let's try with <code>type T = &amp;'long String;</code>, and trying to reach the <code>type T = &amp;'short String;</code>, since the former subtypes the latter:</p>
+<pre><code class="language-rs">&amp;'short (&amp;'long String) ➘ &amp;'short (&amp;'short String)
+// by covariance (in T) of `&amp;'short T`
+// since &amp;'long String ➘ &amp;'short String
+// since 'long ⊇ 'short
+</code></pre>
+<p>✅</p>
+<h3><a class="header" href="#coercion-using-the-long-mut-x--long-x-coercion" id="coercion-using-the-long-mut-x--long-x-coercion">Coercion? (using the <code>&amp;'long mut X ⇒ &amp;'long X</code> coercion)</a></h3>
+<p>Now let's try with <code>type T = &amp;'long mut String</code>, and trying to go to <code>type T = &amp;'long String;</code>, since we know the former can be coerced to the latter:</p>
+<pre><code class="language-rs">fn test&lt;'short, 'long : 'short&gt;(
+    r: &amp;'short (&amp;'long mut String),
+) -&gt; &amp;'short (&amp;'long String)
+{
+    r /* as _ */
+}
+</code></pre>
+<p>This errors! ❌</p>
+<details><summary>Error message</summary>
+<pre><code class="language-rs">error[E0308]: mismatched types
+ --&gt; src/lib.rs:5:5
+  |
+3 | ) -&gt; &amp;'short (&amp;'long String)
+  |      ----------------------- expected `&amp;'short &amp;'long String` because of return type
+4 | {
+5 |     r /* as _ */
+  |     ^ types differ in mutability
+  |
+  = note: expected reference `&amp;'short &amp;'long String`
+             found reference `&amp;'short &amp;'long mut String`
+</code></pre>
+</details>
+<p>Not only does it error, but there is actually no way to write this soundly.</p>
+<p>Indeed, such operation is unsound, <em>i.e.</em>, if it existed, it would make it possible, using it and non-<code>unsafe</code> Rust, to trigger UB/memory-corruption:</p>
+<ol>
+<li>
+<p>Given:</p>
+<pre><code class="language-rs">fn unsound&lt;'short, 'long : 'short&gt;(
+    r: &amp;'short (&amp;'long mut String),
+) -&gt; &amp;'short (&amp;'long String)
+{
+    unsafe { ::core::mem::transmute(r) }
+}
+</code></pre>
+</li>
+<li>
+<p>One can write:</p>
+<pre><code class="language-rs">/// Here is an example of what `unsound` lets us do:
+fn exploit_helper&lt;'long&gt;(
+    s: &amp;'long mut String,
+) -&gt; (
+        &amp;'long String,
+        &amp;'long mut String,
+    )
+{
+    // `s` cannot be used while `short` (or data
+    // derived from it) is being used.
+    let short: &amp;'_ &amp;'long mut String = &amp;s;
+    // the `'short` lifetime in `changed` is still
+    // derived from `short`, so `s` still can't be used
+    let changed: &amp;'_ &amp;'long String = unsound(short);
+    // But we can now dereference `changed`,
+    // since `&amp;'long String : Copy`,
+    // and the resulting `&amp;'long String` is no longer
+    // tied to `short`.
+    let r: &amp;'long String = *changed;
+    // That is, we can freely use `s` even if `r` is used too!
+    (r, s)
+}
+</code></pre>
+<p>Which means we'd have a (shared) reference <em>aliasing</em> with an <em>exclusive</em> one! UB</p>
+</li>
+<li>
+<p>For instance:</p>
+<pre><code class="language-rs">let s = &amp;mut String::from(&quot;Hey!&quot;);
+let (r, s) = exploit_helper(s);
+// Have `r` point to the heap-allocated utf-8 bytes the `String` owns.
+let r: &amp;str = &amp;*r;
+// And now let's deallocate those bytes:
+*s = String::new();
+// read deallocated memory:
+dbg!(r);
+</code></pre>
+<ul>
+<li><a href="https://play.rust-lang.org/?version=stable&amp;mode=debug&amp;edition=2021&amp;gist=bc7bce1298bf9f48214e7462a2f91151">Playground</a></li>
+</ul>
+<pre><code class="language-rs">error: Undefined Behavior: trying to retag from &lt;3360&gt; for SharedReadOnly permission at alloc1685[0x0], but that tag does not exist in the borrow stack for this location
+  --&gt; src/main.rs:19:5
+   |
+19 |     (r2, r)
+   |     ^^^^^^^
+   |     |
+   |     trying to retag from &lt;3360&gt; for SharedReadOnly permission at alloc1685[0x0], but that tag does not exist in the borrow stack for this location
+   |     this error occurs as part of retag at alloc1685[0x0..0x18]
+   |
+   = help: this indicates a potential bug in the program: it performed an invalid operation, but the Stacked Borrows rules it violated are still experimental
+   = help: see https://github.com/rust-lang/unsafe-code-guidelines/blob/master/wip/stacked-borrows.md for further information
+help: &lt;3360&gt; was created by a SharedReadOnly retag at offsets [0x0..0x18]
+  --&gt; src/main.rs:19:6
+   |
+19 |     (r2, r)
+   |      ^^
+help: &lt;3360&gt; was later invalidated at offsets [0x0..0x18] by a Unique retag
+  --&gt; src/main.rs:19:10
+   |
+19 |     (r2, r)
+   |          ^
+   = note: BACKTRACE (of the first span):
+   = note: inside `exploit_helper` at src/main.rs:19:5: 19:12
+note: inside `main`
+  --&gt; src/main.rs:25:18
+   |
+25 |     let (r, s) = exploit_helper(s);
+   |                  ^^^^^^^^^^^^^^^^^
+</code></pre>
+</li>
+</ol>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="usability.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a rel="prev" href="usability.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>

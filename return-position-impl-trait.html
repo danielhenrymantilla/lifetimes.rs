@@ -1,0 +1,487 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Lifetime semantics of -&gt; impl Trait - Rust lifetimes: from 'static to ecstatic</title>
+        
+        
+
+
+        <!-- Custom HTML head -->
+        
+
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        
+        <link rel="icon" href="favicon.svg">
+        
+        
+        <link rel="shortcut icon" href="favicon.png">
+        
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        
+        <link rel="stylesheet" href="css/print.css" media="print">
+        
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        
+        <link rel="stylesheet" href="fonts/fonts.css">
+        
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (true || document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.</strong> What is a &quot;lifetime&quot;?</div></li><li class="chapter-item expanded affix "><li class="part-title">Core notions</li><li class="chapter-item expanded "><a href="pick-function.html"><strong aria-hidden="true">2.</strong> Case study: the pick() function</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Chapter 1</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Bar</div></li><li class="chapter-item expanded affix "><li class="part-title">Reference</li><li class="chapter-item expanded "><a href="lifetime-elision-rules.html"><strong aria-hidden="true">5.</strong> Lifetime elision rules</a></li><li class="chapter-item expanded "><a href="variance-intro.html"><strong aria-hidden="true">6.</strong> Variance</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="covariance.html"><strong aria-hidden="true">6.1.</strong> Covariance: when lifetimes can shrink</a></li><li class="chapter-item expanded "><a href="contravariance.html"><strong aria-hidden="true">6.2.</strong> Contravariance: when lifetimes can grow</a></li><li class="chapter-item expanded "><a href="variance-rules.html"><strong aria-hidden="true">6.3.</strong> Variance rules: a recap</a></li></ol></li><li class="chapter-item expanded "><a href="return-position-impl-trait.html" class="active"><strong aria-hidden="true">7.</strong> Lifetime semantics of -&gt; impl Trait</a></li><li class="chapter-item expanded "><a href="intersection-lifetime.html"><strong aria-hidden="true">8.</strong> Intersection lifetime</a></li><li class="chapter-item expanded "><a href="async-fn.html"><strong aria-hidden="true">9.</strong> async fn unsugaring / lifetime</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">Niche stuff</li><li class="chapter-item expanded "><div><strong aria-hidden="true">10.</strong> impl&lt;#[may_dangle] …&gt; Drop</div></li><li class="spacer"></li><li class="chapter-item expanded "><a href="appendix.html"><strong aria-hidden="true">11.</strong> Appendix</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="elided-lifetimes.html"><strong aria-hidden="true">11.1.</strong> Elided lifetimes / what is '_</a></li><li class="chapter-item expanded "><a href="usability.html"><strong aria-hidden="true">11.2.</strong> Trait + 'lifetime</a></li><li class="chapter-item expanded "><a href="subtyping-vs-coercions.html"><strong aria-hidden="true">11.3.</strong> Subtyping vs. Coercions</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><div>Closing thoughts</div></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        
+                    </div>
+
+                    <h1 class="menu-title">Rust lifetimes: from 'static to ecstatic</h1>
+
+                    <div class="right-buttons">
+                        
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        
+                        
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#lifetime-semantics-of---impl-trait" id="lifetime-semantics-of---impl-trait">Lifetime semantics of <code>-&gt; impl Trait</code></a></h1>
+<h3><a class="header" href="#--impl-trait-automagically-captures-generic-type-parameters-in-scope" id="--impl-trait-automagically-captures-generic-type-parameters-in-scope"><code>-&gt; impl Trait</code> automagically captures generic <em>type</em> parameters in scope</a></h3>
+<pre><code class="language-rs">fn foo&lt;'lt, T&gt;(lt: &amp;'lt (), ty: T)
+  -&gt; impl Sized
+</code></pre>
+<p>is sugar (and the only stable-Rust syntax at the moment) for:</p>
+<pre><code class="language-rs">#![feature(type_alias_impl_trait)]
+
+fn foo&lt;'lt, T&gt;(lt: &amp;'lt (), ty: T)
+  -&gt; __ImplTrait&lt;T&gt;
+// where the compiler has secretly generated:
+pub type __ImplTrait&lt;T&gt; = impl Sized; // no `'lt` generic param!
+</code></pre>
+<ul>
+<li>with <code>__ImplTrait&lt;T&gt;</code> being a compiler-generated <code>struct</code>, of sorts, which is generic over <code>&lt;T&gt;</code> and thus fully &quot;<em>infected by</em> <code>T</code>&quot;.</li>
+</ul>
+<p>That is, it has the semantics of:</p>
+<pre><code class="language-rs">//! Pseudo-code
+
+fn foo&lt;'lt, T&gt;(lt: &amp;'lt (), ty: T)
+  -&gt; impl Sized + InfectedBy&lt;T&gt; // no `+ InfectedBy&lt;'lt&gt;` !
+</code></pre>
+<blockquote>
+<p>What the helium is <code>InfectedBy&lt;T&gt;</code>?</p>
+</blockquote>
+<p>It's pseudo-code of mine to express the property that this <code>struct __ImplTrait&lt;T&gt;</code> would have: for any region <code>'r</code>, if the return type is usable within that region, then so must <code>T</code> itself be:</p>
+<pre><code class="language-rs">for&lt;'r&gt; (
+    impl Sized + InfectedBy&lt;T&gt; : 'r
+    ⇒
+    T : 'r
+)
+</code></pre>
+<p>Although the practical/intuitive aspect of it is rather the contra-position:</p>
+<pre><code class="language-rs">for&lt;'r&gt; (
+    T : !'r // let's assume this is syntax to say that `T : 'r` does not hold.
+    ⇒
+    impl Sized + InfectedBy&lt;T&gt; : !'r
+)
+</code></pre>
+<p>To illustrate, let's pick <code>T = &amp;'t str</code>, for instance:</p>
+<ul>
+<li>beyond <code>'t</code>, instances of type <code>T = &amp;'t str</code> are not allowed to be used.</li>
+<li>Then it means that beyond <code>'t</code>, the returned <code>-&gt; impl Sized</code> won't be allowed to be used either (<em>no matter the function body!</em>).</li>
+</ul>
+<p>These <code>-&gt; impl Sized + InfectedBy&lt;T&gt;</code> semantics are what allow the returned instance to contain <code>ty: T</code> inside it.</p>
+<p>But notice how, despite the <code>'lt</code> generic &quot;lifetime&quot; parameter in scope, there is no <code>+ InfectedBy&lt;'lt&gt;</code> in the unsugaring I've shown!</p>
+<ul>
+<li><details><summary>Example</summary>
+<p>The following works fine:</p>
+<pre><code class="language-rs">fn nothing_doër&lt;'lt&gt;(_: &amp;'lt String)
+  -&gt; impl Fn()
+{
+    || ()
+}
+
+let f = {
+    let local = String::from(&quot;…&quot;);
+    nothing_doër(&amp;local)
+};
+f() // ✅ OK
+</code></pre>
+<p>But the following does not:</p>
+<pre><code class="language-rs">fn nothing_doër&lt;T&gt;(_: T)
+  -&gt; impl Fn()
+{
+    || ()
+}
+
+let f = {
+    let local = String::from(&quot;…&quot;);
+    nothing_doër(&amp;local)
+};
+f() // ❌ Error, `local` does not live long enough!
+</code></pre>
+<p>😬</p>
+<hr />
+</details>
+</li>
+</ul>
+<h3><a class="header" href="#--impl-trait-does-not-implicitly-capture-generic-lifetime-parameters-in-scope" id="--impl-trait-does-not-implicitly-capture-generic-lifetime-parameters-in-scope"><code>-&gt; impl Trait</code> does not implicitly capture generic <em>&quot;lifetime&quot;</em> parameters in scope</a></h3>
+<p>This is not an oversight of mine (nor of the language), but rather a deliberate choice of the design of <code>-&gt; impl Trait</code>. See the associated RFC for more info about it, and the rationale behind that choice.</p>
+<p><strong>The fact there is no <code>+ InfectedBy&lt;'lt&gt;</code> means the returned instance won't be allowed to contain <code>lt: &amp;'lt …</code> inside it</strong>.</p>
+<pre><code class="language-rs">fn foo&lt;'lt, T&gt;(lt: &amp;'lt (), ty: T)
+  -&gt; impl Sized
+{
+    lt // ❌ Error, return type captures lifetime `'lt`
+       //    which does not appear in bounds.
+}
+</code></pre>
+<details><summary>Error message</summary>
+<pre><code class="language-rs">error[E0700]: hidden type for `impl Sized` captures lifetime that does not appear in bounds
+  --&gt; src/lib.rs:11:5
+   |
+8  | fn foo&lt;'lt, T&gt;(lt: &amp;'lt (), ty: T)
+   |        --- hidden type `&amp;'lt ()` captures the lifetime `'lt` as defined here
+...
+11 |     lt
+   |     ^^
+   |
+help: to declare that `impl Sized` captures `'lt`, you can add an explicit `'lt` lifetime bound
+   |
+9  |   -&gt; impl Sized + 'lt
+   |                 +++++
+</code></pre>
+<ul>
+<li>By the way that suggestion is not right, since it is not fully generalizable. See below for an example.</li>
+</ul>
+</details>
+<p>The workaround, currently, is to <strong>make the lifetime appear in bounds</strong>. If your trait in question does not give you room for that, then you can still achieve that by virtue of defining a helper trait for this, which happens to map quite nicely to my previous <code>InfectedBy&lt;…&gt;</code> pseudo-code.</p>
+<ol>
+<li>
+<p>Define a helper generic-over-a-lifetime trait:</p>
+<pre><code class="language-rs">/// Dummy empty marker trait.
+pub trait InfectedBy&lt;'__&gt; {}
+impl&lt;T : ?Sized&gt; InfectedBy&lt;'_&gt; for T {}
+</code></pre>
+</li>
+<li>
+<p>Add it (<code>+ InfectedBy&lt;…&gt;</code>) to the bounds of the returned <code>-&gt; impl Trait</code>:</p>
+<pre><code class="language-rs">//! Real rust code
+
+fn foo&lt;'lt, T&gt;(lt: &amp;'lt (), ty: T)
+  -&gt; impl Sized + InfectedBy&lt;'lt&gt;
+{
+    lt // ✅ OK
+}
+</code></pre>
+</li>
+</ol>
+<p>FWIW, you can imagine that this procedure is easily automatable through a macro:</p>
+<ul>
+<li><a href="https://docs.rs/fix_hidden_lifetime_bug"><code>#[fix_hidden_lifetime_bug]</code></a></li>
+</ul>
+<h3><a class="header" href="#about--lt-a-seemingly-shorter-but-not-always-applicable-workaround" id="about--lt-a-seemingly-shorter-but-not-always-applicable-workaround">About <code>+ 'lt</code>, a seemingly shorter, but not always applicable, workaround</a></h3>
+<p>In general, people will reach for a simple <code>+ 'lt</code> kind of bound (rather than the more cumbersome <code>+ InfectedBy&lt;'lt&gt;</code>).</p>
+<p>But if you have understood <a href="TODO">the meaning of <code>+ 'usability</code> correctly</a>, you should realize how this only works for simple cases:</p>
+<pre><code class="language-rs">/// ✅
+fn simple_case&lt;'lt&gt;(lt: &amp;'lt ())
+  -&gt; impl 'lt + Sized
+{
+    lt
+}
+
+/// ❌
+fn does_not_work&lt;'a, 'b&gt;(a: &amp;'a (), b: &amp;'b ())
+  -&gt; impl 'a + 'b + Sized
+{
+    (a, b)
+}
+</code></pre>
+<details><summary>Error message</summary>
+<pre><code class="language-rs">error: lifetime may not live long enough
+  --&gt; src/lib.rs:21:5
+   |
+18 | fn does_not_work&lt;'a, 'b&gt;(a: &amp;'a (), b: &amp;'b ())
+   |                  --  -- lifetime `'b` defined here
+   |                  |
+   |                  lifetime `'a` defined here
+...
+21 |     (a, b)
+   |     ^^^^^^ function was supposed to return data with lifetime `'b` but it is returning data with lifetime `'a`
+   |
+   = help: consider adding the following bound: `'a: 'b`
+
+error: lifetime may not live long enough
+  --&gt; src/lib.rs:21:5
+   |
+18 | fn does_not_work&lt;'a, 'b&gt;(a: &amp;'a (), b: &amp;'b ())
+   |                  --  -- lifetime `'b` defined here
+   |                  |
+   |                  lifetime `'a` defined here
+...
+21 |     (a, b)
+   |     ^^^^^^ function was supposed to return data with lifetime `'a` but it is returning data with lifetime `'b`
+   |
+   = help: consider adding the following bound: `'b: 'a`
+
+help: `'a` and `'b` must be the same: replace one with the other
+</code></pre>
+</details>
+<p>Indeed, <code>+ 'usability</code> means that it has to be usable (at least) within the whole <code>'usability</code> region!</p>
+<p>So if you write <code>+ 'a + 'b</code> it means that it will be usable within <code>'a</code> <em>and</em><sup class="footnote-reference"><a href="#and">1</a></sup> that it will be usable within <code>'b</code> as well. That is, (an instance of (type)) <code>impl 'a + 'b</code> has to be usable within the <em>union</em> of the regions <code>'a</code> and <code>'b</code>.</p>
+<div class="footnote-definition" id="and"><sup class="footnote-definition-label">1</sup>
+<p>that's exactly what <code>+</code> means in Rust: <code>+</code> adds capabilities, rather than restraining them, so there is no way <code>+ 'a + 'b</code> yields, <em>to the caller</em>, something more restrictive than just <code>+ 'a</code>.</p>
+</div>
+<p>But the <code>(a, b): (&amp;'a (), &amp;'b ())</code> value we are returning is meant to be unusable whenever:</p>
+<ul>
+<li>we leave the <code>'a</code> region (because of its <code>a</code> component),</li>
+<li>we leave the <code>'b</code> region (because of its <code>b</code> component).</li>
+</ul>
+<p>Which means <code>(a, b)</code> is only usable within the <em>intersection</em> of the <code>'a</code> and <code>'b</code> regions.</p>
+<ul>
+<li>
+<p>In expiry dates parlance, imagine a small bottle of milk, <code>a</code>, with an expiry date of one month, and another such bottle, <code>b</code>, but this time with an expiry date of one week. Say now that you mix the contents of both into a big bottle (this would be our <code>(a, b)</code> Rust item). Then the resulting mix should be drunk or thrown away within the week, lest the <code>b</code> part inside it go sour. That is, the resulting mix has an expiry date of <code>'b = min('a, 'b) = intersection('a, 'b)</code>.</p>
+<p>An <code>impl 'a + 'b</code> bottle of milk would, on the other hand, have meant that it would have been drinkable both before next week, and before next month, so effectively before next month (<code>'a = max('a, 'b) = union('a, 'b)</code>).</p>
+</li>
+</ul>
+<p>What we want to say is precisely that <code>(a, b)</code> is infected by both <code>'a</code> and <code>'b</code>, <em>i.e.</em>, that it is <code>InfectedBy&lt;'a&gt; + InfectedBy&lt;'b&gt;</code>:</p>
+<pre><code class="language-rs">fn example&lt;'a, 'b&gt;(
+    a: &amp;'a str,
+    b: &amp;'b str,
+) -&gt; impl Fn(bool) + InfectedBy&lt;'a&gt; + InfectedBy&lt;'b&gt;
+{
+    move /* (a, b) */ |choice| {
+        println!(&quot;{}&quot;, if choice { a } else { b })
+    }
+}
+</code></pre>
+<p>Granted, the previous function can be simplified:</p>
+<pre><code class="language-rs">fn example&lt;'intersection_of_a_and_b&gt;(
+    a: &amp;'intersection_of_a_and_b str,
+    b: &amp;'intersection_of_a_and_b str,
+) -&gt; impl 'intersection_of_a_and_b + Fn(bool)
+</code></pre>
+<ul>
+<li>since <code>'a</code> and <code>'b</code>, from the call-sites, would be able to <strong>shrink down</strong> to some <code>'intersection_of_a_and_b</code> region smaller than both, which would bring us back to a single-lifetime scenario, and thus to using the convenient <code>+ 'usability</code> syntax to get the returned existential to be infected by <code>'intersection_of_a_and_b</code>.</li>
+</ul>
+<p>But in more complex APIs, lifetimes may not be able to shrink, and a proper solution needs to be used if you are to make it work.</p>
+<p>For instance, no matter how hard you try, there is no simpler signature for the following function:</p>
+<pre><code class="language-rs">fn impl_&lt;'a, 'b&gt;(
+    a: Arc&lt;Mutex&lt;&amp;'a str&gt;&gt;,
+    b: Arc&lt;Mutex&lt;&amp;'b str&gt;&gt;,
+) -&gt; impl Fn(bool) + InfectedBy&lt;'a&gt; + InfectedBy&lt;'b&gt;
+{
+    move /* (a, b) */ |choice| {
+        println!(&quot;{}&quot;, if choice {
+            *a.lock().unwrap()
+        } else {
+            *b.lock().unwrap()
+        });
+    }
+}
+</code></pre>
+<h3><a class="header" href="#comparison-to-dyn-trait" id="comparison-to-dyn-trait">Comparison to <code>dyn Trait</code></a></h3>
+<p>Note that <code>dyn Trait</code> is <em>actual</em> type erasure, so if you manage to get your hands on the <code>'intersection</code> lifetime of all the captured lifetime and type parameters, then you can simply use <code>+ 'intersection</code> and Rust won't complain even when bigger unshrinkable lifetimes are part of the before-erasure type (in other words, type erasure is kind of able to shrink even otherwise unshrinkable lifetimes):</p>
+<pre><code class="language-rs">fn dyn_&lt;'i, 'a : 'i, 'b : 'i&gt;( // intersection('a, 'b) ⊇ 'i
+    a: Arc&lt;Mutex&lt;&amp;'a str&gt;&gt;,
+    b: Arc&lt;Mutex&lt;&amp;'b str&gt;&gt;,
+) -&gt; Box&lt;dyn 'i + Fn(bool)&gt;
+{
+    Box::new(move /* (a, b) */ |choice| {
+        println!(&quot;{}&quot;, if choice {
+            *a.lock().unwrap()
+        } else {
+            *b.lock().unwrap()
+        });
+    })
+}
+</code></pre>
+<ul>
+<li><a href="https://play.rust-lang.org/?version=stable&amp;mode=debug&amp;edition=2021&amp;gist=21498ea39cc6e85a074142c45c81e5d5">Playground</a></li>
+</ul>
+<p>The keen eye may have spotted the <a href="./intersection-lifetime.html">&quot;intersection lifetime&quot; pattern</a>. Otherwise, that newly introduced <code>'i</code> &quot;lifetime&quot; parameter will probably seem weird or confusing, in which case you may want to check out <a href="./intersection-lifetime.html">the dedicated section</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="variance-rules.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="intersection-lifetime.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a rel="prev" href="variance-rules.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a rel="next" href="intersection-lifetime.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>
