@@ -562,6 +562,19 @@ fn demo&lt;'short, 'long : 'short&gt;(
 }
 </code></pre>
 <p>This is called a <em>subtyping relation</em>, and <a href="./subtyping-vs-coercions.html">you may observe that it is quite similar to an implicit coercion</a>.</p>
+<p>I'll personally be using the following syntax to express this subtyping property:</p>
+<pre><code class="language-rs">&amp;'long mut i32 ➘ &amp;'short mut i32
+</code></pre>
+<ul>
+<li>
+<p>In the type-theory realm, they instead use <code>&lt;:</code> for this, but I've never been very fond of this sigil, especially given how for lifetimes it's when we have <code>'big ≥ 'short</code> that we have <code>&amp;'big () &lt;: &amp;'short ()</code>, which I find more confusing than saying <code>&amp;'big () ➘ &amp;'short ()</code>.</p>
+<p>I like <code>➘</code> because:</p>
+<ul>
+<li>it looks like a <code>-&gt;</code> without being exactly that one (so as to avoid ambiguities with function signatures);</li>
+<li>we could almost interpret it as a &quot;decay&quot;ing operation, which I personally find to fit quite well the subtyping properties within actual code 🙂 (the amount of type information goes down as we fit into a supertype).</li>
+</ul>
+</li>
+</ul>
 <h3><a class="header" href="#is-shrinking-lifetimes-really-silly" id="is-shrinking-lifetimes-really-silly">Is shrinking lifetimes really &quot;silly&quot;?</a></h3>
 <details><summary>Click to see this section</summary>
 <p>I guess the main example would be when trying to put together references with distinct lifetimes into a single collection such as a <code>Vec</code>:</p>
