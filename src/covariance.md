@@ -25,6 +25,19 @@ fn demo<'short, 'long : 'short>(
 
 This is called a _subtyping relation_, and [you may observe that it is quite similar to an implicit coercion](./subtyping-vs-coercions.md).
 
+I'll personally be using the following syntax to express this subtyping property:
+
+```rs
+&'long mut i32 ➘ &'short mut i32
+```
+
+  - In the type-theory realm, they instead use `<:` for this, but I've never been very fond of this sigil, especially given how for lifetimes it's when we have `'big ≥ 'short` that we have `&'big () <: &'short ()`, which I find more confusing than saying `&'big () ➘ &'short ()`.
+
+    I like `➘` because:
+
+      - it looks like a `->` without being exactly that one (so as to avoid ambiguities with function signatures);
+      - we could almost interpret it as a "decay"ing operation, which I personally find to fit quite well the subtyping properties within actual code 🙂 (the amount of type information goes down as we fit into a supertype).
+
 ### Is shrinking lifetimes really "silly"?
 
 <details><summary>Click to see this section</summary>
